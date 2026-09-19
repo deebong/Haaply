@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --haaply-green: #53B847;
+    --haaply-teal: #37B4A1;
+    --haaply-deep-blue: #004B68;
+    --haaply-bg: #FAFAF6;
+    --haaply-surface: #FFFFFF;
+    --haaply-text: #172126;
+    --haaply-text-secondary: #626B69;
+    --haaply-border: #E7E7DF;
+    --haaply-muted-surface: #F2F3ED;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #FAFAF6;
+    color: #172126;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .tamil-text {
+    font-family: 'Noto Sans Tamil', 'Plus Jakarta Sans', system-ui, sans-serif;
+    line-height: 1.5;
+  }
+}

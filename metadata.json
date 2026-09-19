@@ -1,0 +1,6 @@
+{
+  "name": "Haaply",
+  "description": "Fresh batters, millet foods and everyday favourites, prepared for your home.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

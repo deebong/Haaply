@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="haaplySquircleGradIcon" x1="12" y1="12" x2="84" y2="84" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#53B847" />
+      <stop offset="40%" stop-color="#4BB85E" />
+      <stop offset="70%" stop-color="#3BB58B" />
+      <stop offset="100%" stop-color="#37B4A1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Squircle rounded container (Top-left Green to Bottom-right Teal) -->
+  <rect
+    x="12"
+    y="14"
+    width="72"
+    height="72"
+    rx="22"
+    stroke="url(#haaplySquircleGradIcon)"
+    stroke-width="5.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Iconic Monogram H in Haaply Deep Blue (#004B68) -->
+  <!-- Left tall vertical stem extending out through top -->
+  <path
+    d="M37 3.5 L37 72"
+    stroke="#004B68"
+    stroke-width="5.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Left loop / crossbar -->
+  <path
+    d="M37 72 C22 72 16 57 16 57 C16 57 20 47.5 37 47.5 L58 47.5"
+    stroke="#004B68"
+    stroke-width="5.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Right flag / sail accent -->
+  <path
+    d="M58 24 L76 24 L58 47.5"
+    stroke="#004B68"
+    stroke-width="5.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Right long vertical stem extending out through bottom -->
+  <path
+    d="M58 24 L58 96"
+    stroke="#004B68"
+    stroke-width="5.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>
