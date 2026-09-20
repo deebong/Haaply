@@ -9,6 +9,57 @@ export type Route =
   | { type: 'checkout' }
   | { type: 'not-found' };
 
+/**
+ * Detect base repository path (e.g. /haaply) when hosted on GitHub Pages or subfolders.
+ */
+export function getBasePath(): string {
+  if (typeof window === 'undefined') return '';
+  const pathname = window.location.pathname;
+  const segments = pathname.split('/').filter(Boolean);
+  const knownRoots = ['shop', 'cart', 'checkout', 'category', 'product'];
+
+  // If the first segment is not a recognized top-level app route, it's the GitHub repository name
+  if (segments.length > 0 && !knownRoots.includes(segments[0])) {
+    return '/' + segments[0];
+  }
+  return '';
+}
+
+/**
+ * Extract the relative route path (without repo prefix) and search parameters.
+ */
+export function extractAppPath(): { pathname: string; search: string } {
+  if (typeof window === 'undefined') {
+    return { pathname: '/', search: '' };
+  }
+
+  // 1. Support Hash routing fallback (e.g. #/shop, #shop, #/category/xyz)
+  if (window.location.hash && window.location.hash.length > 1) {
+    let hashContent = window.location.hash.slice(1);
+    if (!hashContent.startsWith('/')) {
+      hashContent = '/' + hashContent;
+    }
+    const [pathPart, searchPart] = hashContent.split('?');
+    return {
+      pathname: pathPart || '/',
+      search: searchPart ? '?' + searchPart : '',
+    };
+  }
+
+  // 2. Standard pathname with repo base stripped
+  const base = getBasePath();
+  let path = window.location.pathname;
+  if (base && path.startsWith(base)) {
+    path = path.slice(base.length);
+  }
+
+  if (!path || !path.startsWith('/')) {
+    path = '/' + (path || '');
+  }
+
+  return { pathname: path, search: window.location.search };
+}
+
 export function parseRoute(pathname: string, search: string = ''): Route {
   // Normalize: remove trailing slash
   const clean = pathname.length > 1 && pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
@@ -47,6 +98,17 @@ export function parseRoute(pathname: string, search: string = ''): Route {
     return { type: 'shop' };
   }
 
+  // Fallback: check if the path ends with known endpoints
+  if (clean.endsWith('/shop')) {
+    return { type: 'shop' };
+  }
+  if (clean.endsWith('/cart')) {
+    return { type: 'cart' };
+  }
+  if (clean.endsWith('/checkout')) {
+    return { type: 'checkout' };
+  }
+
   return { type: 'not-found' };
 }
 
@@ -60,13 +122,16 @@ function notifyListeners() {
 export function navigate(path: string, options?: { replace?: boolean; preserveScroll?: boolean }) {
   if (typeof window === 'undefined') return;
 
-  const currentPath = window.location.pathname + window.location.search;
-  if (currentPath === path) return;
+  const base = getBasePath();
+  const targetFullPath = (base ? base : '') + (path.startsWith('/') ? path : '/' + path);
 
-  if (options?.replace) {
-    window.history.replaceState({}, '', path);
-  } else {
-    window.history.pushState({}, '', path);
+  const currentFullPath = window.location.pathname + window.location.search;
+  if (currentFullPath !== targetFullPath) {
+    if (options?.replace) {
+      window.history.replaceState({}, '', targetFullPath);
+    } else {
+      window.history.pushState({}, '', targetFullPath);
+    }
   }
 
   if (!options?.preserveScroll) {
@@ -77,41 +142,43 @@ export function navigate(path: string, options?: { replace?: boolean; preserveSc
 }
 
 export function useRouter() {
-  const [currentPath, setCurrentPath] = useState(() => {
-    if (typeof window === 'undefined') return '/';
-    return window.location.pathname + window.location.search;
-  });
+  const [navTick, setNavTick] = useState(0);
 
   useEffect(() => {
     const handlePopState = () => {
-      setCurrentPath(window.location.pathname + window.location.search);
+      setNavTick((t) => t + 1);
+    };
+
+    const handleHashChange = () => {
+      setNavTick((t) => t + 1);
     };
 
     const handleCustomNav = () => {
-      setCurrentPath(window.location.pathname + window.location.search);
+      setNavTick((t) => t + 1);
     };
 
     window.addEventListener('popstate', handlePopState);
+    window.addEventListener('hashchange', handleHashChange);
     listeners.add(handleCustomNav);
 
     return () => {
       window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('hashchange', handleHashChange);
       listeners.delete(handleCustomNav);
     };
   }, []);
 
-  const route = parseRoute(
-    typeof window !== 'undefined' ? window.location.pathname : '/',
-    typeof window !== 'undefined' ? window.location.search : ''
-  );
+  const { pathname, search } = extractAppPath();
+  const route = parseRoute(pathname, search);
 
   const goTo = useCallback((path: string, options?: { replace?: boolean; preserveScroll?: boolean }) => {
     navigate(path, options);
   }, []);
 
   return {
-    currentPath,
+    currentPath: pathname + search,
     route,
     navigate: goTo,
+    navTick,
   };
 }

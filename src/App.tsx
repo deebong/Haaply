@@ -293,6 +293,32 @@ export default function App() {
           </main>
         )}
 
+        {/* NOT FOUND ROUTE */}
+        {route.type === 'not-found' && (
+          <main className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-10 py-16 text-center">
+            <div className="bg-white rounded-[22px] border border-[#E7E7DF] p-8 sm:p-12 max-w-md mx-auto shadow-xs">
+              <span className="inline-block px-3 py-1 bg-[#F3F4F1] text-[#004B68] text-xs font-bold rounded-full mb-3">
+                Page Not Found
+              </span>
+              <h1 className="text-xl sm:text-2xl font-bold text-[#004B68]">
+                We couldn't find this page
+              </h1>
+              <p className="text-sm text-[#626B69] mt-2 leading-relaxed">
+                The food or category you're looking for might have moved or the link is outdated.
+              </p>
+              <div className="mt-6 flex justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => navigate('/')}
+                  className="px-5 py-2.5 bg-[#53B847] hover:bg-[#469e3c] text-white text-sm font-bold rounded-xl shadow-xs transition-colors"
+                >
+                  Back to Haaply Home
+                </button>
+              </div>
+            </div>
+          </main>
+        )}
+
         {/* DEFAULT: HOMEPAGE (All original sections preserved) */}
         {route.type === 'home' && (
           <main className="flex-1 space-y-10 sm:space-y-14 md:space-y-16 lg:space-y-20">
