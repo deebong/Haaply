@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 290 100" fill="none">
+  <defs>
+    <!-- Approved Brand Gradient: Haaply Green (#53B847) to Haaply Teal (#37B4A1) -->
+    <linearGradient id="haaplySquircleGrad" x1="12" y1="12" x2="84" y2="84" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#53B847" />
+      <stop offset="40%" stop-color="#4BB85E" />
+      <stop offset="70%" stop-color="#3BB58B" />
+      <stop offset="100%" stop-color="#37B4A1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Squircle rounded container (Top-left Green to Bottom-right Teal) -->
+  <rect
+    x="12"
+    y="14"
+    width="72"
+    height="72"
+    rx="22"
+    stroke="url(#haaplySquircleGrad)"
+    stroke-width="5.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Iconic Monogram H in Haaply Deep Blue (#004B68) -->
+  <!-- Left tall vertical stem extending out through the top of squircle -->
+  <path
+    d="M37 3.5 L37 72"
+    stroke="#004B68"
+    stroke-width="5.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Left loop / crossbar: arcs from bottom-left through center to right stem -->
+  <path
+    d="M37 72 C22 72 16 57 16 57 C16 57 20 47.5 37 47.5 L58 47.5"
+    stroke="#004B68"
+    stroke-width="5.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Right flag / sail accent pointing right -->
+  <path
+    d="M58 24 L76 24 L58 47.5"
+    stroke="#004B68"
+    stroke-width="5.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Right long vertical stem extending out through bottom of squircle -->
+  <path
+    d="M58 24 L58 96"
+    stroke="#004B68"
+    stroke-width="5.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Wordmark 'Haaply' in Deep Slate Charcoal (#28353D) matching the uploaded logo -->
+  <g stroke="#28353D" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <!-- 'H' -->
+    <path d="M103 33 L103 71" />
+    <path d="M125 33 L125 71" />
+    <path d="M103 52 L125 52" />
+
+    <!-- First 'a' -->
+    <path d="M160 45 C157 41 151 40 146 42 C140 45 137 51 137 57 C137 64 141 69 148 69 C154 69 158 66 160 62" />
+    <path d="M160 45 L160 71" />
+
+    <!-- Second 'a' -->
+    <path d="M197 45 C194 41 188 40 183 42 C177 45 174 51 174 57 C174 64 178 69 185 69 C191 69 195 66 197 62" />
+    <path d="M197 45 L197 71" />
+
+    <!-- 'p' -->
+    <path d="M210 45 C213 41 218 40 223 42 C229 45 233 51 233 57 C233 64 229 69 223 69 C217 69 213 65 210 61" />
+    <path d="M210 43 L210 88" />
+
+    <!-- 'l' -->
+    <path d="M246 32 L246 71" />
+
+    <!-- 'y' -->
+    <path d="M259 44 L269 61" />
+    <path d="M280 44 L268 76 C265 83 260 87 254 87" />
+  </g>
+</svg>

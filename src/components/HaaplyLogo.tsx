@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import logoPng from '../assets/logo.png';
+import logoSvg from '../assets/logo-with-icon.svg';
 
 interface HaaplyLogoProps {
   className?: string;
@@ -11,7 +13,7 @@ export const HaaplyLogo: React.FC<HaaplyLogoProps> = ({
   variant = 'full',
   width = 125,
 }) => {
-  const [imgSrc, setImgSrc] = useState('/logo.png');
+  const [imgSrc, setImgSrc] = useState(logoPng);
 
   return (
     <div
@@ -27,9 +29,8 @@ export const HaaplyLogo: React.FC<HaaplyLogoProps> = ({
         style={{ width: `${width}px` }}
         loading="eager"
         onError={() => {
-          // If logo-with-icon.png is not yet uploaded to /public, fallback gracefully
-          if (imgSrc !== '/logo-with-icon.svg') {
-            setImgSrc('/logo-with-icon.svg');
+          if (imgSrc !== logoSvg) {
+            setImgSrc(logoSvg);
           }
         }}
       />
