@@ -16,6 +16,7 @@ interface ProductGridProps {
   onUpdateQuantity: (product: Product, newQuantity: number) => void;
   onToggleWishlist: (product: Product) => void;
   onNotifyMe?: (product: Product) => void;
+  onProductClick?: (product: Product) => void;
 }
 
 export const ProductGrid: React.FC<ProductGridProps> = ({
@@ -31,24 +32,25 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
   onUpdateQuantity,
   onToggleWishlist,
   onNotifyMe,
+  onProductClick,
 }) => {
   return (
     <section
       id={id}
-      className="w-full max-w-[1280px] mx-auto px-6 md:px-8 lg:px-10"
+      className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 lg:px-10"
       aria-labelledby={`${id}-heading`}
     >
       {/* SECTION HEADER: Title, Subtitle, and 'See all →' */}
-      <div className="flex items-end justify-between mb-6">
+      <div className="flex items-end justify-between mb-4 sm:mb-6">
         <div>
           <h2
             id={`${id}-heading`}
-            className="text-[26px] sm:text-[28px] font-bold text-[#004B68] tracking-tight leading-tight"
+            className="text-[22px] sm:text-[26px] md:text-[28px] font-bold text-[#004B68] tracking-tight leading-tight"
           >
             {title}
           </h2>
           {subtitle && (
-            <p className="text-[14px] sm:text-[15px] text-[#626B69] mt-1">
+            <p className="text-[13px] sm:text-[14px] md:text-[15px] text-[#626B69] mt-1">
               {subtitle}
             </p>
           )}
@@ -59,7 +61,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
             id={`${id}-see-all`}
             type="button"
             onClick={onViewAllClick}
-            className="group inline-flex items-center gap-1 text-[14px] font-semibold text-[#004B68] hover:text-[#53B847] transition-colors pb-0.5 focus:outline-none focus-visible:underline"
+            className="group inline-flex items-center gap-1 text-[13px] sm:text-[14px] font-semibold text-[#004B68] hover:text-[#53B847] transition-colors pb-0.5 focus:outline-none focus-visible:underline shrink-0"
           >
             <span>{viewAllLinkText}</span>
             <ArrowRight className="w-4 h-4 transition-transform duration-150 group-hover:translate-x-1 text-[#53B847]" />
@@ -67,8 +69,8 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
         )}
       </div>
 
-      {/* 5-COLUMN RESPONSIVE PRODUCT GRID */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5 justify-items-center">
+      {/* 2-col (mobile) -> 3-col (tablet) -> 4-col (laptop) -> 5-col (large desktop) RESPONSIVE PRODUCT GRID */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 md:gap-5">
         {products.map((product) => (
           <ProductCard
             key={product.id}
@@ -79,6 +81,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
             onUpdateQuantity={onUpdateQuantity}
             onToggleWishlist={onToggleWishlist}
             onNotifyMe={onNotifyMe}
+            onProductClick={onProductClick}
           />
         ))}
       </div>

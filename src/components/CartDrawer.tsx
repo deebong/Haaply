@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, ShoppingBag, Plus, Minus, ArrowRight, Trash2 } from 'lucide-react';
 import { CartItem, Product } from '../types';
+import { useScrollLock } from '../hooks/useScrollLock';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -8,6 +9,7 @@ interface CartDrawerProps {
   cartItems: CartItem[];
   onUpdateQuantity: (product: Product, newQuantity: number) => void;
   onCheckout: () => void;
+  onViewCart?: () => void;
 }
 
 export const CartDrawer: React.FC<CartDrawerProps> = ({
@@ -16,7 +18,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   cartItems,
   onUpdateQuantity,
   onCheckout,
+  onViewCart,
 }) => {
+  // Centralized scroll-lock: locks document scroll, handles mobile touch, and supports Escape key
+  useScrollLock(isOpen, onClose);
+
   if (!isOpen) return null;
 
   const subtotal = cartItems.reduce(
@@ -29,20 +35,26 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const amountNeededForFreeDelivery = Math.max(0, freeDeliveryThreshold - subtotal);
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden">
-      {/* Backdrop */}
+    <div
+      className="fixed inset-0 z-50 overflow-hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Your Fresh Basket"
+    >
+      {/* Backdrop with touch-none to prevent touch-drag bleeding */}
       <div
-        className="fixed inset-0 bg-[#172126]/30 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 bg-[#172126]/30 backdrop-blur-xs transition-opacity touch-none"
         onClick={onClose}
+        aria-hidden="true"
       />
 
-      <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-md bg-white shadow-2xl border-l border-[#E7E7DF] flex flex-col">
+      <div className="fixed inset-y-0 right-0 max-w-full flex pl-0 sm:pl-10">
+        <div className="w-screen max-w-full sm:max-w-md bg-white shadow-2xl border-l border-[#E7E7DF] flex flex-col">
           {/* Header */}
-          <div className="px-6 py-5 border-b border-[#E7E7DF] flex items-center justify-between">
+          <div className="px-4 py-4 sm:px-6 sm:py-5 border-b border-[#E7E7DF] flex items-center justify-between">
             <div className="flex items-center gap-2">
               <ShoppingBag className="w-5 h-5 text-[#53B847]" />
-              <h3 className="text-lg font-bold text-[#004B68]">
+              <h3 className="text-base sm:text-lg font-bold text-[#004B68]">
                 Your Fresh Basket
               </h3>
               <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#F2F3ED] text-[#626B69]">
@@ -60,7 +72,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           </div>
 
           {/* Delivery progress banner */}
-          <div className="px-6 py-2.5 bg-[#FAFAF6] border-b border-[#E7E7DF]/70 text-xs">
+          <div className="px-4 py-2.5 sm:px-6 bg-[#FAFAF6] border-b border-[#E7E7DF]/70 text-xs">
             {amountNeededForFreeDelivery === 0 ? (
               <p className="text-[#53B847] font-semibold flex items-center gap-1.5">
                 <span>✓</span> You qualify for Free Fresh Delivery!
@@ -81,9 +93,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           </div>
 
           {/* Cart Items List */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-4">
+          <div
+            data-modal-scrollable="true"
+            className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3 sm:space-y-4 overscroll-contain"
+          >
             {cartItems.length === 0 ? (
-              <div className="text-center py-16">
+              <div className="text-center py-12 sm:py-16">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#F2F3ED] flex items-center justify-center text-[#626B69]">
                   <ShoppingBag className="w-8 h-8" />
                 </div>
@@ -105,12 +120,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               cartItems.map(({ product, quantity }) => (
                 <div
                   key={product.id}
-                  className="flex items-center gap-3.5 p-3 rounded-xl border border-[#E7E7DF] bg-[#FAFAF6]/50"
+                  className="flex items-center gap-3 sm:gap-3.5 p-2.5 sm:p-3 rounded-xl border border-[#E7E7DF] bg-[#FAFAF6]/50"
                 >
                   <img
                     src={product.image}
                     alt={product.name}
-                    className="w-16 h-16 rounded-lg object-cover bg-white shrink-0 border border-[#E7E7DF]"
+                    className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg object-cover bg-white shrink-0 border border-[#E7E7DF]"
                   />
 
                   <div className="flex-1 min-w-0">
@@ -130,7 +145,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     <button
                       type="button"
                       onClick={() => onUpdateQuantity(product, quantity - 1)}
-                      className="w-6 h-6 flex items-center justify-center text-[#626B69] hover:text-[#172126] transition-colors"
+                      className="w-7 h-7 sm:w-6 sm:h-6 flex items-center justify-center text-[#626B69] hover:text-[#172126] transition-colors"
                       aria-label="Decrease quantity"
                     >
                       {quantity === 1 ? (
@@ -144,9 +159,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     </span>
                     <button
                       type="button"
+                      disabled={product.stockCount !== undefined && quantity >= product.stockCount}
                       onClick={() => onUpdateQuantity(product, quantity + 1)}
-                      className="w-6 h-6 flex items-center justify-center text-[#626B69] hover:text-[#172126] transition-colors"
+                      className="w-7 h-7 sm:w-6 sm:h-6 flex items-center justify-center text-[#626B69] hover:text-[#172126] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                       aria-label="Increase quantity"
+                      title={product.stockCount !== undefined && quantity >= product.stockCount ? `Only ${product.stockCount} in stock` : 'Increase quantity'}
                     >
                       <Plus className="w-3.5 h-3.5" />
                     </button>
@@ -158,7 +175,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
           {/* Footer with totals & checkout */}
           {cartItems.length > 0 && (
-            <div className="p-6 border-t border-[#E7E7DF] bg-[#FAFAF6] space-y-3">
+            <div className="p-4 sm:p-6 border-t border-[#E7E7DF] bg-[#FAFAF6] space-y-3">
               <div className="space-y-1.5 text-xs text-[#626B69]">
                 <div className="flex justify-between">
                   <span>Item Subtotal</span>
@@ -183,11 +200,25 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               <button
                 type="button"
                 onClick={onCheckout}
-                className="w-full py-3.5 bg-[#53B847] hover:bg-[#469e3c] text-white text-sm font-bold rounded-xl transition-colors flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                className="w-full py-3.5 bg-[#53B847] hover:bg-[#469e3c] text-white text-sm font-bold rounded-xl transition-colors flex items-center justify-center gap-2 shadow-xs cursor-pointer min-h-[44px]"
               >
                 <span>Proceed to Delivery Slot</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
+
+              {onViewCart && (
+                <button
+                  id="drawer-view-full-cart-btn"
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onViewCart();
+                  }}
+                  className="w-full py-2.5 bg-white hover:bg-[#F2F3ED] text-[#004B68] border border-[#E7E7DF] text-xs font-bold rounded-xl transition-colors flex items-center justify-center gap-1.5 min-h-[40px] cursor-pointer"
+                >
+                  <span>View Full Basket</span>
+                </button>
+              )}
             </div>
           )}
         </div>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Clock, Users, Check, ShoppingBag } from 'lucide-react';
 import { Product } from '../types';
+import { useScrollLock } from '../hooks/useScrollLock';
 
 interface RecipeModalProps {
   isOpen: boolean;
@@ -15,23 +16,32 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
   onAddIngredients,
   paniyaramProduct,
 }) => {
+  // Centralized scroll-lock: locks document scroll, handles mobile touch, and supports Escape key
+  useScrollLock(isOpen, onClose);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="recipe-modal-title"
+    >
       <div
-        className="fixed inset-0 bg-[#172126]/40 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 bg-[#172126]/40 backdrop-blur-xs transition-opacity touch-none"
         onClick={onClose}
+        aria-hidden="true"
       />
 
       <div className="relative w-full max-w-2xl bg-white rounded-[20px] shadow-2xl border border-[#E7E7DF] overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#E7E7DF]">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-[#E7E7DF]">
           <div>
             <span className="text-[11px] font-bold text-[#53B847] tracking-wider uppercase">
               From Our Kitchen
             </span>
-            <h3 className="text-xl font-bold text-[#004B68]">
+            <h3 id="recipe-modal-title" className="text-lg sm:text-xl font-bold text-[#004B68]">
               15-minute Kuzhi Paniyaram
             </h3>
             <p className="tamil-text text-xs text-[#626B69]">
@@ -49,8 +59,11 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
         </div>
 
         {/* Body */}
-        <div className="p-6 overflow-y-auto space-y-6">
-          <div className="flex items-center gap-6 text-xs text-[#626B69] bg-[#FAFAF6] p-3 rounded-xl border border-[#E7E7DF]">
+        <div
+          data-modal-scrollable="true"
+          className="p-4 sm:p-6 overflow-y-auto space-y-5 sm:space-y-6 overscroll-contain"
+        >
+          <div className="flex items-center gap-4 sm:gap-6 text-xs text-[#626B69] bg-[#FAFAF6] p-3 rounded-xl border border-[#E7E7DF]">
             <div className="flex items-center gap-1.5">
               <Clock className="w-4 h-4 text-[#53B847]" />
               <span>Prep & Cook: <strong className="text-[#172126]">15 mins</strong></span>
@@ -115,8 +128,8 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-4 bg-[#FAFAF6] border-t border-[#E7E7DF]">
-          <div className="text-xs text-[#626B69]">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 px-4 sm:px-6 py-3.5 sm:py-4 bg-[#FAFAF6] border-t border-[#E7E7DF]">
+          <div className="text-xs text-[#626B69] text-center sm:text-left">
             {paniyaramProduct ? `Product: ${paniyaramProduct.name} (₹${paniyaramProduct.price})` : ''}
           </div>
           <button
@@ -125,7 +138,7 @@ export const RecipeModal: React.FC<RecipeModalProps> = ({
               onAddIngredients();
               onClose();
             }}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#53B847] hover:bg-[#469e3c] text-white text-xs font-semibold rounded-xl transition-colors shadow-2xs"
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#53B847] hover:bg-[#469e3c] text-white text-xs font-semibold rounded-xl transition-colors shadow-2xs min-h-[44px]"
           >
             <ShoppingBag className="w-4 h-4" />
             <span>Add Batter to Cart</span>

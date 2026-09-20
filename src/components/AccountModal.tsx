@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, User, Phone, Check, ShieldCheck, LogOut, Package } from 'lucide-react';
+import { useScrollLock } from '../hooks/useScrollLock';
 
 interface AccountModalProps {
   isOpen: boolean;
@@ -16,6 +17,9 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   onToggleLogin,
   userPhone,
 }) => {
+  // Centralized scroll-lock: locks document scroll, handles mobile touch, and supports Escape key
+  useScrollLock(isOpen, onClose);
+
   const [phoneInput, setPhoneInput] = useState(userPhone || '9843210980');
   const [pinInput, setPinInput] = useState('1234');
   const [step, setStep] = useState<'phone' | 'pin'>('phone');
@@ -29,17 +33,23 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="account-modal-title"
+    >
       <div
-        className="fixed inset-0 bg-[#172126]/40 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 bg-[#172126]/40 backdrop-blur-xs transition-opacity touch-none"
         onClick={onClose}
+        aria-hidden="true"
       />
 
-      <div className="relative w-full max-w-md bg-white rounded-[22px] shadow-2xl border border-[#E7E7DF] overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#E7E7DF]">
+      <div className="relative w-full max-w-md bg-white rounded-[22px] shadow-2xl border border-[#E7E7DF] overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#E7E7DF] shrink-0">
           <div className="flex items-center gap-2">
             <User className="w-5 h-5 text-[#004B68]" />
-            <h3 className="text-lg font-bold text-[#004B68]">
+            <h3 id="account-modal-title" className="text-lg font-bold text-[#004B68]">
               {isLoggedIn ? 'Customer Account' : 'Sign in to Haaply'}
             </h3>
           </div>
@@ -53,7 +63,10 @@ export const AccountModal: React.FC<AccountModalProps> = ({
           </button>
         </div>
 
-        <div className="p-6">
+        <div
+          data-modal-scrollable="true"
+          className="p-6 overflow-y-auto overscroll-contain"
+        >
           {isLoggedIn ? (
             <div className="space-y-5">
               <div className="flex items-center gap-3.5 p-4 rounded-xl bg-[#FAFAF6] border border-[#E7E7DF]">

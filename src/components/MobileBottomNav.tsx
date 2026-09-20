@@ -1,0 +1,120 @@
+import React from 'react';
+import { Home, Compass, Search, User, ShoppingBag } from 'lucide-react';
+
+interface MobileBottomNavProps {
+  activeNav: string;
+  onNavClick: (nav: string) => void;
+  cartCount: number;
+  onOpenCart: () => void;
+  onOpenSearch: () => void;
+  onOpenAccount: () => void;
+  isLoggedIn: boolean;
+}
+
+export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
+  activeNav,
+  onNavClick,
+  cartCount,
+  onOpenCart,
+  onOpenSearch,
+  onOpenAccount,
+  isLoggedIn,
+}) => {
+  return (
+    <nav
+      id="mobile-bottom-nav"
+      className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E7E7DF] md:hidden shadow-[0_-4px_20px_rgba(0,0,0,0.05)] pb-[env(safe-area-inset-bottom,0px)]"
+      aria-label="Mobile Navigation"
+    >
+      <div className="flex items-center justify-around h-16 px-2">
+        {/* 1. Home */}
+        <a
+          id="mobile-nav-home"
+          href="/"
+          onClick={(e) => {
+            e.preventDefault();
+            onNavClick('home');
+          }}
+          className={`flex-1 flex flex-col items-center justify-center py-1 min-h-[48px] rounded-lg transition-colors duration-150 focus:outline-none ${
+            activeNav === 'home'
+              ? 'text-[#004B68] font-semibold'
+              : 'text-[#626B69] hover:text-[#172126]'
+          }`}
+          aria-label="Home"
+        >
+          <Home className="w-5 h-5 mb-0.5" />
+          <span className="text-[10px] tracking-tight">Home</span>
+        </a>
+
+        {/* 2. Shop */}
+        <a
+          id="mobile-nav-shop"
+          href="/shop"
+          onClick={(e) => {
+            e.preventDefault();
+            onNavClick('shop');
+          }}
+          className={`flex-1 flex flex-col items-center justify-center py-1 min-h-[48px] rounded-lg transition-colors duration-150 focus:outline-none ${
+            activeNav === 'shop' || activeNav === 'category' || activeNav === 'product'
+              ? 'text-[#004B68] font-semibold'
+              : 'text-[#626B69] hover:text-[#172126]'
+          }`}
+          aria-label="Shop complete catalog"
+        >
+          <Compass className="w-5 h-5 mb-0.5" />
+          <span className="text-[10px] tracking-tight">Shop</span>
+        </a>
+
+        {/* 3. Search */}
+        <button
+          id="mobile-nav-search"
+          type="button"
+          onClick={onOpenSearch}
+          className="flex-1 flex flex-col items-center justify-center py-1 min-h-[48px] text-[#626B69] hover:text-[#172126] rounded-lg transition-colors duration-150 focus:outline-none"
+          aria-label="Search items"
+        >
+          <Search className="w-5 h-5 mb-0.5" />
+          <span className="text-[10px] tracking-tight">Search</span>
+        </button>
+
+        {/* 4. Account */}
+        <button
+          id="mobile-nav-account"
+          type="button"
+          onClick={onOpenAccount}
+          className="flex-1 flex flex-col items-center justify-center py-1 min-h-[48px] text-[#626B69] hover:text-[#172126] rounded-lg transition-colors duration-150 focus:outline-none"
+          aria-label={isLoggedIn ? 'Account profile' : 'Sign in'}
+        >
+          <div className="relative">
+            <User className="w-5 h-5 mb-0.5" />
+            {isLoggedIn && (
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#53B847]" />
+            )}
+          </div>
+          <span className="text-[10px] tracking-tight">
+            {isLoggedIn ? 'Account' : 'Sign in'}
+          </span>
+        </button>
+
+        {/* 5. Cart */}
+        <button
+          id="mobile-nav-cart"
+          type="button"
+          onClick={onOpenCart}
+          className="flex-1 flex flex-col items-center justify-center py-1 min-h-[48px] text-[#004B68] hover:text-[#53B847] rounded-lg transition-colors duration-150 focus:outline-none relative"
+          aria-label={`Cart with ${cartCount} items`}
+        >
+          <div className="relative">
+            <ShoppingBag className="w-5 h-5 mb-0.5" />
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-2.5 flex items-center justify-center min-w-[16px] h-[16px] px-1 text-[9px] font-bold text-white bg-[#53B847] rounded-full ring-2 ring-white">
+                {cartCount}
+              </span>
+            )}
+          </div>
+          <span className="text-[10px] font-semibold tracking-tight">Cart</span>
+        </button>
+      </div>
+    </nav>
+  );
+};

@@ -24,4 +24,17 @@
     font-family: 'Noto Sans Tamil', 'Plus Jakarta Sans', system-ui, sans-serif;
     line-height: 1.5;
   }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  [data-modal-scrollable="true"] {
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
 }

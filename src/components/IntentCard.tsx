@@ -20,7 +20,7 @@ export const IntentCard: React.FC<IntentCardProps> = ({ intent, onClick }) => {
           onClick(intent);
         }
       }}
-      className="group relative flex flex-col justify-end h-[300px] sm:h-[320px] rounded-[22px] overflow-hidden p-6 cursor-pointer border border-[#E7E7DF] transition-all duration-300 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:border-[#37B4A1] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#53B847]"
+      className="group relative flex flex-col justify-end w-[250px] xs:w-[270px] sm:w-auto shrink-0 sm:shrink h-[260px] sm:h-[300px] md:h-[320px] rounded-[20px] sm:rounded-[22px] overflow-hidden p-5 sm:p-6 cursor-pointer border border-[#E7E7DF] transition-all duration-300 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:border-[#37B4A1] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#53B847] snap-start"
     >
       {/* Editorial Food Photography Background */}
       <img

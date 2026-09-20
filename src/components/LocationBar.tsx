@@ -19,23 +19,23 @@ export const LocationBar: React.FC<LocationBarProps> = ({
       id="delivery-location-row"
       className="w-full bg-[#FAFAF6] border-b border-[#E7E7DF]/70 text-[#626B69]"
     >
-      <div className="max-w-[1280px] mx-auto px-6 md:px-8 lg:px-10 py-2 flex items-center justify-between text-xs">
-        <div className="relative flex items-center gap-1.5">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 lg:px-10 py-2 flex items-center justify-between text-xs">
+        <div className="relative flex items-center gap-1.5 min-w-0">
           <MapPin className="w-3.5 h-3.5 text-[#53B847] shrink-0" />
-          <span className="font-normal text-[#626B69]">Delivering to</span>
+          <span className="font-normal text-[#626B69] shrink-0">Delivering to</span>
           <button
             id="location-picker-btn"
             type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className="group inline-flex items-center gap-1 font-semibold text-[#172126] hover:text-[#004B68] transition-colors focus:outline-none focus-visible:underline ml-0.5"
+            className="group inline-flex items-center gap-1 font-semibold text-[#172126] hover:text-[#004B68] transition-colors focus:outline-none focus-visible:underline ml-0.5 min-w-0"
             aria-expanded={isOpen}
             aria-haspopup="listbox"
           >
-            <span>
+            <span className="truncate max-w-[140px] xs:max-w-[200px] sm:max-w-none">
               {location.area}, {location.city}, {location.pincode}
             </span>
             <ChevronDown
-              className={`w-3.5 h-3.5 text-[#626B69] group-hover:text-[#004B68] transition-transform duration-200 ${
+              className={`w-3.5 h-3.5 text-[#626B69] group-hover:text-[#004B68] transition-transform duration-200 shrink-0 ${
                 isOpen ? 'rotate-180' : ''
               }`}
             />
@@ -50,7 +50,7 @@ export const LocationBar: React.FC<LocationBarProps> = ({
               />
               <div
                 id="location-dropdown-menu"
-                className="absolute left-0 top-full mt-2 w-72 bg-white rounded-xl shadow-lg border border-[#E7E7DF] p-2 z-30 animate-in fade-in zoom-in-95 duration-150"
+                className="absolute left-0 top-full mt-2 w-72 max-w-[calc(100vw-32px)] bg-white rounded-xl shadow-lg border border-[#E7E7DF] p-2 z-30 animate-in fade-in zoom-in-95 duration-150"
               >
                 <div className="px-3 py-2 border-b border-[#E7E7DF]/60">
                   <p className="text-[11px] font-semibold tracking-wider text-[#626B69] uppercase">

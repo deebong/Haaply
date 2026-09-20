@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { X, Search, ArrowRight } from 'lucide-react';
 import { Product } from '../types';
 import { ProductCard } from './ProductCard';
+import { useScrollLock } from '../hooks/useScrollLock';
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -13,6 +14,8 @@ interface SearchModalProps {
   onAddToCart: (product: Product) => void;
   onUpdateQuantity: (product: Product, newQuantity: number) => void;
   onToggleWishlist: (product: Product) => void;
+  onNotifyMe?: (product: Product) => void;
+  onProductClick?: (product: Product) => void;
 }
 
 export const SearchModal: React.FC<SearchModalProps> = ({
@@ -25,7 +28,12 @@ export const SearchModal: React.FC<SearchModalProps> = ({
   onAddToCart,
   onUpdateQuantity,
   onToggleWishlist,
+  onNotifyMe,
+  onProductClick,
 }) => {
+  // Centralized scroll-lock: locks document scroll, handles mobile touch, and supports Escape key
+  useScrollLock(isOpen, onClose);
+
   const [query, setQuery] = useState(initialQuery);
 
   const filteredProducts = useMemo(() => {
@@ -43,21 +51,27 @@ export const SearchModal: React.FC<SearchModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 px-4">
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center pt-4 sm:pt-16 px-3 sm:px-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Search fresh products"
+    >
       <div
-        className="fixed inset-0 bg-[#172126]/40 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 bg-[#172126]/40 backdrop-blur-xs transition-opacity touch-none"
         onClick={onClose}
+        aria-hidden="true"
       />
 
-      <div className="relative w-full max-w-4xl bg-white rounded-[22px] shadow-2xl border border-[#E7E7DF] overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200 max-h-[85vh] flex flex-col">
+      <div className="relative w-full max-w-4xl bg-white rounded-[18px] sm:rounded-[22px] shadow-2xl border border-[#E7E7DF] overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] sm:max-h-[85vh] flex flex-col">
         {/* Search Input Bar */}
-        <div className="p-4 sm:p-5 border-b border-[#E7E7DF] flex items-center gap-3">
+        <div className="p-3.5 sm:p-5 border-b border-[#E7E7DF] flex items-center gap-2.5 sm:gap-3">
           <Search className="w-5 h-5 text-[#53B847] shrink-0" />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search fresh batters, millets, sevai, chapathi, paneer..."
+            placeholder="Search fresh batters, millets, paneer..."
             autoFocus
             className="w-full text-base sm:text-lg bg-transparent border-none outline-none text-[#172126] placeholder-[#626B69]"
           />
@@ -80,7 +94,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
         </div>
 
         {/* Quick suggestions chips */}
-        <div className="px-5 py-2.5 bg-[#FAFAF6] border-b border-[#E7E7DF]/70 flex items-center gap-2 overflow-x-auto text-xs">
+        <div className="px-3 sm:px-5 py-2 sm:py-2.5 bg-[#FAFAF6] border-b border-[#E7E7DF]/70 flex items-center gap-1.5 sm:gap-2 overflow-x-auto text-xs scrollbar-none">
           <span className="text-[#626B69] shrink-0">Popular searches:</span>
           {['Dosa Batter', 'Idli Batter', 'Ragi Sevai', 'Chapathi', 'Fresh Paneer', 'Millet'].map(
             (tag) => (
@@ -97,8 +111,11 @@ export const SearchModal: React.FC<SearchModalProps> = ({
         </div>
 
         {/* Results grid */}
-        <div className="p-6 overflow-y-auto flex-1">
-          <div className="flex items-center justify-between mb-4">
+        <div
+          data-modal-scrollable="true"
+          className="p-3.5 sm:p-6 overflow-y-auto flex-1 overscroll-contain"
+        >
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
             <span className="text-xs font-semibold uppercase tracking-wider text-[#626B69]">
               {query ? `Found ${filteredProducts.length} items` : 'Fresh Recommendations'}
             </span>
@@ -114,7 +131,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 justify-items-center">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
               {filteredProducts.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -124,6 +141,8 @@ export const SearchModal: React.FC<SearchModalProps> = ({
                   onAddToCart={onAddToCart}
                   onUpdateQuantity={onUpdateQuantity}
                   onToggleWishlist={onToggleWishlist}
+                  onNotifyMe={onNotifyMe}
+                  onProductClick={onProductClick}
                 />
               ))}
             </div>
