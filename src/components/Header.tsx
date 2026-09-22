@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Heart, User, ShoppingBag, X } from 'lucide-react';
 import { HaaplyLogo } from './HaaplyLogo';
+import { useConfig } from '../providers/ConfigProvider';
 
 interface HeaderProps {
   activeNav: string;
@@ -23,15 +24,16 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenAccount,
   isLoggedIn,
 }) => {
+  const { isFeatureEnabled } = useConfig();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
 
   const navItems = [
-    { id: 'shop', label: 'Shop', href: '/shop' },
-    { id: 'collections', label: 'Collections', href: '/shop' },
-    { id: 'fresh-today', label: 'Fresh Today', href: '/' },
-    { id: 'recipes', label: 'Recipes' },
-  ];
+    { id: 'shop', label: 'Shop', href: '/shop', enabled: isFeatureEnabled('catalog') },
+    { id: 'collections', label: 'Collections', href: '/shop', enabled: isFeatureEnabled('catalog') },
+    { id: 'fresh-today', label: 'Fresh Today', href: '/', enabled: true },
+    { id: 'recipes', label: 'Recipes', enabled: isFeatureEnabled('recipes') },
+  ].filter((item) => item.enabled);
 
   return (
     <header
@@ -136,38 +138,42 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Wishlist */}
-          <button
-            id="header-wishlist-btn"
-            type="button"
-            onClick={() => onNavClick('wishlist')}
-            className="relative p-2 sm:p-2.5 text-[#172126] hover:text-[#004B68] hover:bg-[#F2F3ED] rounded-lg transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#53B847] min-w-[40px] min-h-[40px] flex items-center justify-center"
-            aria-label={`Wishlist with ${wishlistCount} saved items`}
-            title="Wishlist"
-          >
-            <Heart className={`w-5 h-5 ${wishlistCount > 0 ? 'fill-[#004B68] text-[#004B68]' : ''}`} />
-            {wishlistCount > 0 && (
-              <span className="absolute top-1 right-1 flex items-center justify-center min-w-[17px] h-[17px] px-1 text-[10px] font-bold text-white bg-[#004B68] rounded-full ring-2 ring-white">
-                {wishlistCount}
-              </span>
-            )}
-          </button>
+          {isFeatureEnabled('wishlist') && (
+            <button
+              id="header-wishlist-btn"
+              type="button"
+              onClick={() => onNavClick('wishlist')}
+              className="relative p-2 sm:p-2.5 text-[#172126] hover:text-[#004B68] hover:bg-[#F2F3ED] rounded-lg transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#53B847] min-w-[40px] min-h-[40px] flex items-center justify-center"
+              aria-label={`Wishlist with ${wishlistCount} saved items`}
+              title="Wishlist"
+            >
+              <Heart className={`w-5 h-5 ${wishlistCount > 0 ? 'fill-[#004B68] text-[#004B68]' : ''}`} />
+              {wishlistCount > 0 && (
+                <span className="absolute top-1 right-1 flex items-center justify-center min-w-[17px] h-[17px] px-1 text-[10px] font-bold text-white bg-[#004B68] rounded-full ring-2 ring-white">
+                  {wishlistCount}
+                </span>
+              )}
+            </button>
+          )}
 
           {/* Account (hidden on mobile, provided in bottom nav; visible on tablet/desktop) */}
-          <button
-            id="header-account-btn"
-            type="button"
-            onClick={onOpenAccount}
-            className="hidden md:flex p-2.5 text-[#172126] hover:text-[#004B68] hover:bg-[#F2F3ED] rounded-lg transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#53B847] items-center gap-1.5 min-h-[40px]"
-            aria-label={isLoggedIn ? 'Account Profile' : 'Sign in to your account'}
-            title={isLoggedIn ? 'Karthik (Account)' : 'Sign In'}
-          >
-            <User className="w-5 h-5" />
-            {isLoggedIn && (
-              <span className="hidden xl:inline-block text-xs font-medium text-[#172126]">
-                Account
-              </span>
-            )}
-          </button>
+          {isFeatureEnabled('customerAccounts') && (
+            <button
+              id="header-account-btn"
+              type="button"
+              onClick={onOpenAccount}
+              className="hidden md:flex p-2.5 text-[#172126] hover:text-[#004B68] hover:bg-[#F2F3ED] rounded-lg transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#53B847] items-center gap-1.5 min-h-[40px]"
+              aria-label={isLoggedIn ? 'Account Profile' : 'Sign in to your account'}
+              title={isLoggedIn ? 'Karthik (Account)' : 'Sign In'}
+            >
+              <User className="w-5 h-5" />
+              {isLoggedIn && (
+                <span className="hidden xl:inline-block text-xs font-medium text-[#172126]">
+                  Account
+                </span>
+              )}
+            </button>
+          )}
 
           {/* Cart */}
           <button

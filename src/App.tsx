@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Header } from './components/Header';
 import { LocationBar } from './components/LocationBar';
 import { Hero } from './components/Hero';
@@ -19,6 +19,12 @@ import { ProductDetailPage } from './components/ProductDetailPage';
 import { CartPage } from './components/CartPage';
 import { CheckoutPage } from './components/CheckoutPage';
 import { useRouter } from './router';
+import { useTheme } from './providers/ThemeProvider';
+import { useActiveStore } from './providers/StoreProvider';
+import { AtelierHeader } from './themes/fashion/AtelierHeader';
+import { AtelierHomepage } from './themes/fashion/AtelierHomepage';
+import { AtelierFooter } from './themes/fashion/AtelierFooter';
+import { FASHION_PRODUCTS, FASHION_CATEGORIES } from './data/fashionDemoData';
 import {
   PRODUCTS,
   CATEGORIES,
@@ -27,10 +33,69 @@ import {
   TODAY_FRESH_PICKS_IDS,
   EVERYDAY_FAVOURITES_IDS,
 } from './data/products';
-import { Product, Category, MealIntent, DeliveryLocation, CartItem } from './types';
+import { Product, ProductVariant, Category, MealIntent, DeliveryLocation, CartItem } from './types';
 import { ArrowRight, Sparkles, Filter, X } from 'lucide-react';
+import { useConfig } from './providers/ConfigProvider';
+import { useDataProvider, useDataService } from './providers/DataProvider';
+import {
+  getCartKey,
+  parseCartKey,
+  getDefaultVariant,
+  getProductQuantityInCart,
+  hasMultipleVariants,
+} from './utils/productUtils';
 
 export default function App() {
+  const { store: activeStore, setStoreId, availableStores } = useActiveStore();
+  const { isFeatureEnabled } = useConfig();
+  const dataService = useDataService();
+  const { provider } = useDataProvider();
+  const { theme, setThemeId } = useTheme();
+  const isAtelier = activeStore.vertical === 'fashion' || activeStore.id === 'store-atelier';
+
+  // Load catalog scoped strictly to active StoreInstance
+  const [products, setProducts] = useState<Product[]>(() => {
+    return activeStore.id === 'store-atelier' ? FASHION_PRODUCTS : PRODUCTS;
+  });
+  const [categories, setCategories] = useState<Category[]>(() => {
+    return activeStore.id === 'store-atelier' ? FASHION_CATEGORIES : CATEGORIES;
+  });
+  const [mealIntents, setMealIntents] = useState<MealIntent[]>(() => {
+    return activeStore.id === 'store-atelier' ? [] : MEAL_INTENTS;
+  });
+
+  // Active products, categories, and catalog are strictly the active store's data
+  const activeProducts = products;
+  const activeCategories = categories;
+  const allCatalogProducts = products;
+
+  useEffect(() => {
+    let isMounted = true;
+    // Immediate seed update when active store changes
+    if (activeStore.id === 'store-atelier') {
+      setProducts(FASHION_PRODUCTS);
+      setCategories(FASHION_CATEGORIES);
+      setMealIntents([]);
+    } else {
+      setProducts(PRODUCTS);
+      setCategories(CATEGORIES);
+      setMealIntents(MEAL_INTENTS);
+    }
+
+    dataService.products.getProducts().then((list) => {
+      if (isMounted && list.length > 0) setProducts(list);
+    }).catch(console.error);
+    dataService.products.getCategories().then((cats) => {
+      if (isMounted && cats.length > 0) setCategories(cats);
+    }).catch(console.error);
+    dataService.products.getMealIntents().then((intents) => {
+      if (isMounted) setMealIntents(intents);
+    }).catch(console.error);
+    return () => {
+      isMounted = false;
+    };
+  }, [dataService, activeStore.id]);
+
   // Routing hook
   const { currentPath, route, navigate } = useRouter();
 
@@ -40,13 +105,49 @@ export default function App() {
     DEFAULT_DELIVERY_LOCATION
   );
 
-  // Cart & Wishlist State
-  const [cartMap, setCartMap] = useState<Record<string, number>>({
-    'prod-dosa-paniyaram': 2, // Pre-loaded with 2 batters to immediately showcase State 2 [ − 2 + ] in Today's Fresh Picks!
+  // Cart & Wishlist State scoped strictly by storeId to prevent cross-tenant contamination
+  const [cartByStore, setCartByStore] = useState<Record<string, Record<string, number>>>({
+    'store-haaply': {
+      'prod-dosa-paniyaram:prod-dosa-paniyaram-1kg': 2, // Pre-loaded with 2 batters to immediately showcase State 2 [ − 2 + ] in Today's Fresh Picks!
+    },
+    'store-atelier': {
+      'atelier-linen-overshirt:linen-overshirt-sand-m': 1, // Pre-loaded fashion item
+    },
   });
-  const [wishlistSet, setWishlistSet] = useState<Set<string>>(
-    new Set(['prod-idli-batter', 'prod-fresh-paneer']) // Pre-loaded to showcase State 5 (Wishlist active filled heart)!
-  );
+  const [wishlistByStore, setWishlistByStore] = useState<Record<string, Set<string>>>({
+    'store-haaply': new Set(['prod-idli-batter', 'prod-fresh-paneer']),
+    'store-atelier': new Set(['atelier-linen-overshirt', 'atelier-silk-shirt']),
+  });
+
+  const cartMap = useMemo(() => {
+    return cartByStore[activeStore.id] || {};
+  }, [cartByStore, activeStore.id]);
+
+  const setCartMap = useCallback((updaterOrVal: Record<string, number> | ((prev: Record<string, number>) => Record<string, number>)) => {
+    setCartByStore((prevByStore) => {
+      const prevCart = prevByStore[activeStore.id] || {};
+      const newCart = typeof updaterOrVal === 'function' ? updaterOrVal(prevCart) : updaterOrVal;
+      return {
+        ...prevByStore,
+        [activeStore.id]: newCart,
+      };
+    });
+  }, [activeStore.id]);
+
+  const wishlistSet = useMemo(() => {
+    return wishlistByStore[activeStore.id] || new Set<string>();
+  }, [wishlistByStore, activeStore.id]);
+
+  const setWishlistSet = useCallback((updaterOrVal: Set<string> | ((prev: Set<string>) => Set<string>)) => {
+    setWishlistByStore((prevByStore) => {
+      const prevWishlist = prevByStore[activeStore.id] || new Set<string>();
+      const newWishlist = typeof updaterOrVal === 'function' ? updaterOrVal(prevWishlist) : updaterOrVal;
+      return {
+        ...prevByStore,
+        [activeStore.id]: newWishlist,
+      };
+    });
+  }, [activeStore.id]);
 
   // Category & Intent Filter State (Homepage Context)
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
@@ -77,34 +178,61 @@ export default function App() {
   };
 
   // Cart Handlers
-  const handleAddToCart = (product: Product) => {
-    if (product.stockStatus === 'out_of_stock' || (product.stockCount !== undefined && product.stockCount <= 0)) {
-      triggerToast(`${product.name} is currently out of stock`);
+  const handleAddToCart = (product: Product, selectedVariant?: ProductVariant) => {
+    const variant = selectedVariant || getDefaultVariant(product);
+    const effectiveStockStatus = variant.stockStatus ?? product.stockStatus;
+    const effectiveStockCount = variant.stockCount ?? product.stockCount;
+
+    if (effectiveStockStatus === 'out_of_stock' || (effectiveStockCount !== undefined && effectiveStockCount <= 0)) {
+      triggerToast(
+        hasMultipleVariants(product)
+          ? `${product.name} (${variant.label}) is currently out of stock`
+          : `${product.name} is currently out of stock`
+      );
       return;
     }
-    const currentQty = cartMap[product.id] || 0;
-    if (product.stockCount !== undefined && currentQty >= product.stockCount) {
-      triggerToast(`Only ${product.stockCount} units available in stock`);
+    const cartKey = getCartKey(product.id, variant.id);
+    const currentQty = cartMap[cartKey] || 0;
+    if (effectiveStockCount !== undefined && currentQty >= effectiveStockCount) {
+      triggerToast(`Only ${effectiveStockCount} units available for ${variant.label}`);
       return;
     }
     setCartMap((prev) => ({
       ...prev,
-      [product.id]: (prev[product.id] || 0) + 1,
+      [cartKey]: (prev[cartKey] || 0) + 1,
     }));
-    triggerToast(`Added ${product.name} to basket`);
+    triggerToast(
+      hasMultipleVariants(product)
+        ? `Added ${product.name} (${variant.label}) to basket`
+        : `Added ${product.name} to basket`
+    );
   };
 
-  const handleUpdateQuantity = (product: Product, newQuantity: number) => {
-    if (product.stockCount !== undefined && newQuantity > product.stockCount) {
-      triggerToast(`Maximum available stock reached (${product.stockCount})`);
+  const handleUpdateQuantity = (
+    product: Product,
+    newQuantity: number,
+    selectedVariant?: ProductVariant
+  ) => {
+    const variant = selectedVariant || getDefaultVariant(product);
+    const cartKey = getCartKey(product.id, variant.id);
+    const effectiveStockCount = variant.stockCount ?? product.stockCount;
+
+    if (effectiveStockCount !== undefined && newQuantity > effectiveStockCount) {
+      triggerToast(`Maximum available stock reached (${effectiveStockCount})`);
       return;
     }
     setCartMap((prev) => {
       const next = { ...prev };
       if (newQuantity <= 0) {
-        delete next[product.id];
+        delete next[cartKey];
+        if (cartKey !== product.id && next[product.id] !== undefined) {
+          delete next[product.id];
+        }
       } else {
-        next[product.id] = newQuantity;
+        next[cartKey] = newQuantity;
+        if (cartKey !== product.id && next[product.id] !== undefined) {
+          delete next[product.id];
+        }
       }
       return next;
     });
@@ -131,12 +259,24 @@ export default function App() {
   // Derive cart items
   const cartItems: CartItem[] = useMemo(() => {
     return Object.entries(cartMap)
-      .map(([id, quantity]) => {
-        const product = PRODUCTS.find((p) => p.id === id);
-        return product ? { product, quantity } : null;
+      .map(([cartKey, quantity]) => {
+        if (quantity <= 0) return null;
+        const { productId, variantId } = parseCartKey(cartKey);
+        const product = allCatalogProducts.find((p) => p.id === productId);
+        if (!product) return null;
+
+        let variant: ProductVariant | undefined;
+        if (variantId && product.variants && product.variants.length > 0) {
+          variant = product.variants.find((v) => v.id === variantId);
+        }
+        if (!variant) {
+          variant = getDefaultVariant(product);
+        }
+
+        return { product, variant, quantity };
       })
       .filter((item): item is CartItem => item !== null);
-  }, [cartMap]);
+  }, [cartMap, allCatalogProducts]);
 
   const totalCartCount = useMemo(() => {
     return Object.values(cartMap).reduce((sum, count) => sum + count, 0);
@@ -144,19 +284,19 @@ export default function App() {
 
   // Curated Lists for Homepage
   const todayFreshPicks = useMemo(() => {
-    return TODAY_FRESH_PICKS_IDS.map((id) => PRODUCTS.find((p) => p.id === id)!).filter(Boolean);
-  }, []);
+    return TODAY_FRESH_PICKS_IDS.map((id) => products.find((p) => p.id === id)!).filter(Boolean);
+  }, [products]);
 
   const everydayFavourites = useMemo(() => {
-    return EVERYDAY_FAVOURITES_IDS.map((id) => PRODUCTS.find((p) => p.id === id)!).filter(Boolean);
-  }, []);
+    return EVERYDAY_FAVOURITES_IDS.map((id) => products.find((p) => p.id === id)!).filter(Boolean);
+  }, [products]);
 
   const displayedCategoryProducts = useMemo(() => {
     if (!selectedCategory) return null;
-    return PRODUCTS.filter((p) => p.categorySlug === selectedCategory.slug);
-  }, [selectedCategory]);
+    return products.filter((p) => p.categorySlug === selectedCategory.slug);
+  }, [selectedCategory, products]);
 
-  const paniyaramProduct = PRODUCTS.find((p) => p.id === 'prod-dosa-paniyaram');
+  const paniyaramProduct = products.find((p) => p.id === 'prod-dosa-paniyaram');
 
   const scrollToFreshPicks = () => {
     if (route.type !== 'home') {
@@ -175,45 +315,59 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAFAF6] text-[#172126] overflow-x-hidden">
-      {/* 1. GLOBAL HEADER */}
-      <Header
-        activeNav={activeNav}
-        onNavClick={(nav) => {
-          if (nav === 'home') {
-            navigate('/');
-          } else if (nav === 'shop' || nav === 'collections') {
-            navigate('/shop');
-          } else if (nav === 'fresh-today') {
-            scrollToFreshPicks();
-          } else if (nav === 'recipes') {
-            setIsRecipeOpen(true);
-          } else if (nav === 'wishlist') {
-            triggerToast(`Wishlist contains ${wishlistSet.size} items`);
-          }
-        }}
-        cartCount={totalCartCount}
-        wishlistCount={wishlistSet.size}
-        onOpenCart={() => setIsCartOpen(true)}
-        onOpenSearch={() => setIsSearchOpen(true)}
-        onOpenAccount={() => setIsAccountOpen(true)}
-        isLoggedIn={isLoggedIn}
-      />
+      {/* 1. GLOBAL HEADER & LOCATION */}
+      {isAtelier ? (
+        <AtelierHeader
+          cartCount={totalCartCount}
+          wishlistCount={wishlistSet.size}
+          onOpenCart={() => setIsCartOpen(true)}
+          onOpenSearch={() => setIsSearchOpen(true)}
+          onOpenAccount={() => setIsAccountOpen(true)}
+          onNavigate={navigate}
+          currentPath={currentPath}
+        />
+      ) : (
+        <>
+          <Header
+            activeNav={activeNav}
+            onNavClick={(nav) => {
+              if (nav === 'home') {
+                navigate('/');
+              } else if (nav === 'shop' || nav === 'collections') {
+                navigate('/shop');
+              } else if (nav === 'fresh-today') {
+                scrollToFreshPicks();
+              } else if (nav === 'recipes') {
+                setIsRecipeOpen(true);
+              } else if (nav === 'wishlist') {
+                triggerToast(`Wishlist contains ${wishlistSet.size} items`);
+              }
+            }}
+            cartCount={totalCartCount}
+            wishlistCount={wishlistSet.size}
+            onOpenCart={() => setIsCartOpen(true)}
+            onOpenSearch={() => setIsSearchOpen(true)}
+            onOpenAccount={() => setIsAccountOpen(true)}
+            isLoggedIn={isLoggedIn}
+          />
 
-      {/* 2. DELIVERY LOCATION */}
-      <LocationBar
-        location={deliveryLocation}
-        onLocationChange={(newLoc) => {
-          setDeliveryLocation(newLoc);
-          triggerToast(`Delivery location set to ${newLoc.area}, ${newLoc.city}`);
-        }}
-      />
+          {/* 2. DELIVERY LOCATION (Grocery only) */}
+          <LocationBar
+            location={deliveryLocation}
+            onLocationChange={(newLoc) => {
+              setDeliveryLocation(newLoc);
+              triggerToast(`Delivery location set to ${newLoc.area}, ${newLoc.city}`);
+            }}
+          />
+        </>
+      )}
 
       {/* ROUTE-BASED MAIN CONTENT CONTAINER */}
       <div className="flex-1 flex flex-col pb-20 md:pb-0">
         {route.type === 'shop' && (
           <ShopPage
-            products={PRODUCTS}
-            categories={CATEGORIES}
+            products={activeProducts}
+            categories={activeCategories}
             cartMap={cartMap}
             wishlistSet={wishlistSet}
             onAddToCart={handleAddToCart}
@@ -228,8 +382,8 @@ export default function App() {
         {route.type === 'category' && (
           <CategoryPage
             categorySlug={route.categorySlug}
-            categories={CATEGORIES}
-            products={PRODUCTS}
+            categories={activeCategories}
+            products={activeProducts}
             cartMap={cartMap}
             wishlistSet={wishlistSet}
             onAddToCart={handleAddToCart}
@@ -243,8 +397,8 @@ export default function App() {
         {route.type === 'product' && (
           <ProductDetailPage
             productId={route.productId}
-            products={PRODUCTS}
-            categories={CATEGORIES}
+            products={allCatalogProducts}
+            categories={activeCategories}
             cartMap={cartMap}
             wishlistSet={wishlistSet}
             onAddToCart={handleAddToCart}
@@ -310,8 +464,24 @@ export default function App() {
           </main>
         )}
 
-        {/* DEFAULT: HOMEPAGE (All original sections preserved) */}
-        {route.type === 'home' && (
+        {/* HOMEPAGE: ATELIER FASHION STOREFRONT */}
+        {route.type === 'home' && isAtelier && (
+          <main className="flex-1">
+            <AtelierHomepage
+              onNavigate={navigate}
+              onProductClick={(pId) => navigate(`/product/${pId}`)}
+              onAddToCart={handleAddToCart}
+              onToggleWishlist={(pId) => {
+                const found = allCatalogProducts.find((p) => p.id === pId);
+                if (found) handleToggleWishlist(found);
+              }}
+              wishlistIds={Array.from(wishlistSet)}
+            />
+          </main>
+        )}
+
+        {/* DEFAULT: HOMEPAGE (All original sections preserved for Grocery) */}
+        {route.type === 'home' && !isAtelier && (
           <main className="flex-1 space-y-10 sm:space-y-14 md:space-y-16 lg:space-y-20">
             {/* 3. HERO / PRIMARY DISCOVERY */}
             <Hero
@@ -351,7 +521,7 @@ export default function App() {
 
               {/* Category Cards: Horizontal scrollable rail on mobile, 3-col on tablet, 6-col on desktop */}
               <div className="flex sm:grid overflow-x-auto sm:overflow-x-visible pb-3 sm:pb-0 gap-3 sm:gap-4 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-none snap-x sm:grid-cols-3 lg:grid-cols-6">
-                {CATEGORIES.map((cat) => (
+                {categories.map((cat) => (
                   <CategoryCard
                     key={cat.id}
                     category={cat}
@@ -393,7 +563,8 @@ export default function App() {
                       <ProductCard
                         key={product.id}
                         product={product}
-                        quantityInCart={cartMap[product.id] || 0}
+                        quantityInCart={getProductQuantityInCart(product, cartMap)}
+                        cartMap={cartMap}
                         isWishlisted={wishlistSet.has(product.id)}
                         onAddToCart={handleAddToCart}
                         onUpdateQuantity={handleUpdateQuantity}
@@ -425,83 +596,86 @@ export default function App() {
             />
 
             {/* 6. WHAT ARE YOU MAKING TODAY? (Editorial Intent Section) */}
-            <section
-              id="what-are-you-making-today-section"
-              className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 lg:px-10"
-              aria-labelledby="meal-intent-heading"
-            >
-              <div className="flex items-end justify-between mb-4 sm:mb-6">
-                <div>
-                  <h2
-                    id="meal-intent-heading"
-                    className="text-[22px] sm:text-[26px] md:text-[28px] font-bold text-[#004B68] tracking-tight leading-tight"
-                  >
-                    What are you making today?
-                  </h2>
-                  <p className="text-[13px] sm:text-[14px] md:text-[15px] text-[#626B69] mt-1">
-                    Choose an idea and we'll show you what goes with it.
-                  </p>
-                </div>
-              </div>
-
-              {/* 4 Intent Cards: horizontal scrollable on mobile, 2-col on tablet, 4-col on desktop */}
-              <div className="flex sm:grid overflow-x-auto sm:overflow-x-visible pb-3 sm:pb-0 gap-3.5 sm:gap-5 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-none snap-x sm:grid-cols-2 lg:grid-cols-4">
-                {MEAL_INTENTS.map((intent) => (
-                  <IntentCard
-                    key={intent.id}
-                    intent={intent}
-                    onClick={(item) => {
-                      setSelectedIntent((curr) => (curr?.id === item.id ? null : item));
-                      triggerToast(`Showing recommendations for ${item.title}`);
-                    }}
-                  />
-                ))}
-              </div>
-
-              {/* Contextual Intent Recommendation Box */}
-              {selectedIntent && (
-                <div className="mt-6 sm:mt-8 p-4 sm:p-6 bg-white rounded-[22px] border border-[#E7E7DF] shadow-xs animate-in fade-in duration-200">
-                  <div className="flex items-center justify-between mb-4 sm:mb-5">
-                    <div>
-                      <span className="text-xs font-semibold text-[#53B847] uppercase tracking-wider">
-                        Recommended for {selectedIntent.title}
-                      </span>
-                      <h3 className="text-lg sm:text-xl font-bold text-[#004B68]">
-                        Ingredients for "{selectedIntent.subtitle}"
-                      </h3>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedIntent(null)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#626B69] hover:text-[#172126] bg-[#F2F3ED] rounded-lg hover:bg-[#E7E7DF] transition-colors"
+            {isFeatureEnabled('mealIntents') && (
+              <section
+                id="what-are-you-making-today-section"
+                className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 md:px-8 lg:px-10"
+                aria-labelledby="meal-intent-heading"
+              >
+                <div className="flex items-end justify-between mb-4 sm:mb-6">
+                  <div>
+                    <h2
+                      id="meal-intent-heading"
+                      className="text-[22px] sm:text-[26px] md:text-[28px] font-bold text-[#004B68] tracking-tight leading-tight"
                     >
-                      <X className="w-3.5 h-3.5" />
-                      <span>Close recommendations</span>
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
-                    {selectedIntent.featuredProductIds.map((id) => {
-                      const product = PRODUCTS.find((p) => p.id === id);
-                      if (!product) return null;
-                      return (
-                        <ProductCard
-                          key={product.id}
-                          product={product}
-                          quantityInCart={cartMap[product.id] || 0}
-                          isWishlisted={wishlistSet.has(product.id)}
-                          onAddToCart={handleAddToCart}
-                          onUpdateQuantity={handleUpdateQuantity}
-                          onToggleWishlist={handleToggleWishlist}
-                          onNotifyMe={handleNotifyMe}
-                          onProductClick={(p) => navigate(`/product/${p.id}`)}
-                        />
-                      );
-                    })}
+                      What are you making today?
+                    </h2>
+                    <p className="text-[13px] sm:text-[14px] md:text-[15px] text-[#626B69] mt-1">
+                      Choose an idea and we'll show you what goes with it.
+                    </p>
                   </div>
                 </div>
-              )}
-            </section>
+
+                {/* 4 Intent Cards: horizontal scrollable on mobile, 2-col on tablet, 4-col on desktop */}
+                <div className="flex sm:grid overflow-x-auto sm:overflow-x-visible pb-3 sm:pb-0 gap-3.5 sm:gap-5 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-none snap-x sm:grid-cols-2 lg:grid-cols-4">
+                  {mealIntents.map((intent) => (
+                    <IntentCard
+                      key={intent.id}
+                      intent={intent}
+                      onClick={(item) => {
+                        setSelectedIntent((curr) => (curr?.id === item.id ? null : item));
+                        triggerToast(`Showing recommendations for ${item.title}`);
+                      }}
+                    />
+                  ))}
+                </div>
+
+                {/* Contextual Intent Recommendation Box */}
+                {selectedIntent && (
+                  <div className="mt-6 sm:mt-8 p-4 sm:p-6 bg-white rounded-[22px] border border-[#E7E7DF] shadow-xs animate-in fade-in duration-200">
+                    <div className="flex items-center justify-between mb-4 sm:mb-5">
+                      <div>
+                        <span className="text-xs font-semibold text-[#53B847] uppercase tracking-wider">
+                          Recommended for {selectedIntent.title}
+                        </span>
+                        <h3 className="text-lg sm:text-xl font-bold text-[#004B68]">
+                          Ingredients for "{selectedIntent.subtitle}"
+                        </h3>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedIntent(null)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#626B69] hover:text-[#172126] bg-[#F2F3ED] rounded-lg hover:bg-[#E7E7DF] transition-colors"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                        <span>Close recommendations</span>
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
+                      {selectedIntent.featuredProductIds.map((id) => {
+                        const product = products.find((p) => p.id === id);
+                        if (!product) return null;
+                        return (
+                          <ProductCard
+                            key={product.id}
+                            product={product}
+                            quantityInCart={getProductQuantityInCart(product, cartMap)}
+                            cartMap={cartMap}
+                            isWishlisted={wishlistSet.has(product.id)}
+                            onAddToCart={handleAddToCart}
+                            onUpdateQuantity={handleUpdateQuantity}
+                            onToggleWishlist={handleToggleWishlist}
+                            onNotifyMe={handleNotifyMe}
+                            onProductClick={(p) => navigate(`/product/${p.id}`)}
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </section>
+            )}
 
             {/* 7. BUY AGAIN / POPULAR FAVOURITES */}
             <ProductGrid
@@ -525,50 +699,58 @@ export default function App() {
             />
 
             {/* 8. FROM OUR KITCHEN (Editorial Brand Story) */}
-            <EditorialCard
-              onViewRecipe={() => setIsRecipeOpen(true)}
-              onShopIngredients={() => {
-                if (paniyaramProduct) {
-                  handleAddToCart(paniyaramProduct);
-                }
-                setIsCartOpen(true);
-              }}
-            />
+            {isFeatureEnabled('recipes') && (
+              <EditorialCard
+                onViewRecipe={() => setIsRecipeOpen(true)}
+                onShopIngredients={() => {
+                  if (paniyaramProduct) {
+                    handleAddToCart(paniyaramProduct);
+                  }
+                  setIsCartOpen(true);
+                }}
+              />
+            )}
           </main>
         )}
       </div>
 
       {/* 9. FOOTER */}
-      <Footer
-        onLinkClick={(slug) => {
-          if (slug === '/shop') {
-            navigate('/shop');
-          } else if (slug === 'fresh-today') {
-            scrollToFreshPicks();
-          } else {
-            navigate(slug.startsWith('/') ? slug : `/${slug}`);
-          }
-        }}
-      />
+      {isAtelier ? (
+        <AtelierFooter onNavigate={navigate} />
+      ) : (
+        <Footer
+          onLinkClick={(slug) => {
+            if (slug === '/shop') {
+              navigate('/shop');
+            } else if (slug === 'fresh-today') {
+              scrollToFreshPicks();
+            } else {
+              navigate(slug.startsWith('/') ? slug : `/${slug}`);
+            }
+          }}
+        />
+      )}
 
-      {/* 10. MOBILE BOTTOM NAVIGATION BAR (Visible on mobile screens <md) */}
-      <MobileBottomNav
-        activeNav={activeNav}
-        onNavClick={(nav) => {
-          if (nav === 'home') {
-            navigate('/');
-            setSelectedCategory(null);
-            setSelectedIntent(null);
-          } else if (nav === 'shop') {
-            navigate('/shop');
-          }
-        }}
-        cartCount={totalCartCount}
-        onOpenCart={() => setIsCartOpen(true)}
-        onOpenSearch={() => setIsSearchOpen(true)}
-        onOpenAccount={() => setIsAccountOpen(true)}
-        isLoggedIn={isLoggedIn}
-      />
+      {/* 10. MOBILE BOTTOM NAVIGATION BAR (Visible on mobile screens <md for Grocery) */}
+      {!isAtelier && (
+        <MobileBottomNav
+          activeNav={activeNav}
+          onNavClick={(nav) => {
+            if (nav === 'home') {
+              navigate('/');
+              setSelectedCategory(null);
+              setSelectedIntent(null);
+            } else if (nav === 'shop') {
+              navigate('/shop');
+            }
+          }}
+          cartCount={totalCartCount}
+          onOpenCart={() => setIsCartOpen(true)}
+          onOpenSearch={() => setIsSearchOpen(true)}
+          onOpenAccount={() => setIsAccountOpen(true)}
+          isLoggedIn={isLoggedIn}
+        />
+      )}
 
       {/* SUPPORTING DIALOGS & OVERLAYS */}
       <CartDrawer
@@ -612,7 +794,7 @@ export default function App() {
       <SearchModal
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
-        products={PRODUCTS}
+        products={activeProducts}
         initialQuery={searchQuery}
         cartMap={cartMap}
         wishlistSet={wishlistSet}
@@ -625,6 +807,38 @@ export default function App() {
           navigate(`/product/${p.id}`);
         }}
       />
+
+      {/* FLOATING STORE INSTANCE SWITCHER (Allows instantaneous live verification between Haaply and Atelier store boundaries) */}
+      <div
+        id="store-instance-switcher"
+        className="fixed bottom-3 left-3 z-40 bg-white/95 backdrop-blur-md border border-[#E7E7DF] shadow-md rounded-full px-2.5 py-1.5 flex items-center gap-2 text-xs font-sans text-[#172126]"
+      >
+        <span className="text-[10px] uppercase tracking-wider font-semibold text-[#626B69] pl-1">Store:</span>
+        {availableStores.map((st) => {
+          const isActive = st.id === activeStore.id;
+          return (
+            <button
+              key={st.id}
+              type="button"
+              id={`switch-to-${st.id}`}
+              onClick={() => {
+                setStoreId(st.id);
+                // Also reset route to '/' if in category/product to prevent missing item across store catalogs
+                if (route.type === 'category' || route.type === 'product') {
+                  navigate('/');
+                }
+              }}
+              className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                isActive
+                  ? (st.id === 'store-atelier' ? 'bg-[#181818] text-white shadow-xs' : 'bg-[#53B847] text-white shadow-xs')
+                  : 'hover:bg-[#F2F3ED] text-[#626B69]'
+              }`}
+            >
+              {st.name} ({st.vertical === 'grocery' ? 'Grocery' : 'Fashion'})
+            </button>
+          );
+        })}
+      </div>
 
       {/* Toast Notification (positioned above mobile nav on phones) */}
       {toastMessage && (

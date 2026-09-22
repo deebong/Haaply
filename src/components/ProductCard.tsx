@@ -1,13 +1,21 @@
-import React from 'react';
-import { Heart, Plus, Minus, Bell, Check } from 'lucide-react';
-import { Product } from '../types';
+import React, { useState, useMemo } from 'react';
+import { Heart, Plus, Minus, Bell } from 'lucide-react';
+import { Product, ProductVariant } from '../types';
+import {
+  hasMultipleVariants,
+  getDefaultVariant,
+  getVariantQuantityInCart,
+} from '../utils/productUtils';
+import { useTheme } from '../providers/ThemeProvider';
+import { AtelierProductCard } from '../themes/fashion/AtelierProductCard';
 
 interface ProductCardProps {
   product: Product;
-  quantityInCart: number;
+  quantityInCart?: number;
+  cartMap?: Record<string, number>;
   isWishlisted: boolean;
-  onAddToCart: (product: Product) => void;
-  onUpdateQuantity: (product: Product, newQuantity: number) => void;
+  onAddToCart: (product: Product, variant?: ProductVariant) => void;
+  onUpdateQuantity: (product: Product, newQuantity: number, variant?: ProductVariant) => void;
   onToggleWishlist: (product: Product) => void;
   onNotifyMe?: (product: Product) => void;
   onProductClick?: (product: Product) => void;
@@ -15,7 +23,8 @@ interface ProductCardProps {
 
 export const ProductCard: React.FC<ProductCardProps> = ({
   product,
-  quantityInCart,
+  quantityInCart = 0,
+  cartMap,
   isWishlisted,
   onAddToCart,
   onUpdateQuantity,
@@ -23,9 +32,76 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   onNotifyMe,
   onProductClick,
 }) => {
-  const isOutOfStock = product.stockStatus === 'out_of_stock';
+  const { theme } = useTheme();
+
+  // If active theme uses editorial fashion cards, render the specialized Atelier card
+  if (theme.id === 'atelier' || theme.capabilities?.productCardStyle === 'editorial-portrait') {
+    return (
+      <AtelierProductCard
+        product={product}
+        isWishlisted={isWishlisted}
+        onAddToCart={(prod, v) => onAddToCart(prod, v)}
+        onUpdateQuantity={(prodId, qty, vId) => {
+          const v = product.variants?.find((item) => item.id === vId);
+          onUpdateQuantity(product, qty, v);
+        }}
+        onToggleWishlist={() => onToggleWishlist(product)}
+        onProductClick={() => onProductClick?.(product)}
+        currentQuantity={quantityInCart}
+      />
+    );
+  }
+
+  const isMultiVariant = hasMultipleVariants(product);
+  const defaultVar = useMemo(() => getDefaultVariant(product), [product]);
+
+  // Default selection: use product's isDefault variant if one exists, otherwise first variant
+  const initialVariantId = useMemo(() => {
+    if (isMultiVariant && product.variants && product.variants.length > 0) {
+      const def = product.variants.find((v) => v.isDefault);
+      return def ? def.id : product.variants[0].id;
+    }
+    return defaultVar.id;
+  }, [isMultiVariant, product.variants, defaultVar.id]);
+
+  const [selectedVariantId, setSelectedVariantId] = useState<string>(initialVariantId);
+
+  // Active variant resolution
+  const activeVariant = useMemo(() => {
+    if (isMultiVariant && product.variants && product.variants.length > 0) {
+      return product.variants.find((v) => v.id === selectedVariantId) || defaultVar;
+    }
+    return defaultVar;
+  }, [isMultiVariant, product.variants, selectedVariantId, defaultVar]);
+
+  // Stock status checks
+  const isProductOutOfStock = product.stockStatus === 'out_of_stock';
   const isLowStock = product.stockStatus === 'low_stock';
-  const isAdded = quantityInCart > 0;
+  const isCurrentVariantOutOfStock = isMultiVariant
+    ? (activeVariant.stockStatus === 'out_of_stock' || isProductOutOfStock)
+    : isProductOutOfStock;
+
+  // Selected variant cart quantity
+  const currentVariantQuantity = useMemo(() => {
+    if (cartMap) {
+      return getVariantQuantityInCart(
+        cartMap,
+        product.id,
+        isMultiVariant ? activeVariant.id : defaultVar.id,
+        isMultiVariant ? activeVariant.isDefault : true
+      );
+    }
+    return quantityInCart;
+  }, [cartMap, product.id, isMultiVariant, activeVariant, defaultVar, quantityInCart]);
+
+  const isCurrentVariantAdded = currentVariantQuantity > 0;
+  const currentStockLimit = isMultiVariant
+    ? (activeVariant.stockCount ?? product.stockCount)
+    : product.stockCount;
+
+  // Active pricing display
+  const currentPrice = isMultiVariant ? activeVariant.price : product.price;
+  const currentOriginalPrice = isMultiVariant ? activeVariant.originalPrice : product.originalPrice;
 
   return (
     <article
@@ -44,20 +120,20 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             src={product.image}
             alt={product.name}
             className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02] ${
-              isOutOfStock ? 'opacity-55 grayscale' : ''
+              isProductOutOfStock ? 'opacity-55 grayscale' : ''
             }`}
             loading="lazy"
           />
 
           {/* STATE 6: Fresh Today Small Label */}
-          {product.isFreshToday && !isOutOfStock && (
+          {product.isFreshToday && !isProductOutOfStock && (
             <div className="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 bg-white/95 backdrop-blur-xs text-[#004B68] text-[9px] sm:text-[10px] font-bold tracking-wider uppercase px-1.5 sm:px-2 py-0.5 rounded-md border border-[#E7E7DF] shadow-xs">
               FRESH TODAY
             </div>
           )}
 
           {/* STATE 4: Out of Stock Overlay Badge */}
-          {isOutOfStock && (
+          {isProductOutOfStock && (
             <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center p-2">
               <span className="bg-[#172126] text-white text-[10px] sm:text-[11px] font-bold tracking-wider uppercase px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md shadow-xs">
                 OUT OF STOCK
@@ -95,7 +171,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </span>
 
           {/* STATE 3: Low Stock Warning Label */}
-          {isLowStock && !isOutOfStock && (
+          {isLowStock && !isProductOutOfStock && (
             <span className="text-[10px] sm:text-[11px] font-medium text-[#c05621] bg-[#feebc8]/60 px-1 sm:px-1.5 py-0.5 rounded shrink-0">
               Only {product.stockCount || 4} left
             </span>
@@ -117,10 +193,62 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </p>
         </div>
 
-        {/* PACK SIZE */}
-        <p className="text-[11px] sm:text-[12px] text-[#626B69] mt-0.5 sm:mt-1 font-normal">
-          {product.packSize}
-        </p>
+        {/* PACK SIZE (Single-variant) or INLINE VARIANT SELECTOR (Multi-variant) */}
+        {isMultiVariant && product.variants ? (
+          <div
+            className="mt-1.5 flex flex-wrap items-center gap-1.5"
+            onClick={(e) => e.stopPropagation()}
+            role="group"
+            aria-label={`${product.name} pack size options`}
+          >
+            {product.variants.map((variant) => {
+              const isSelected = variant.id === activeVariant.id;
+              const isVariantOutOfStock = variant.stockStatus === 'out_of_stock' || isProductOutOfStock;
+              const variantQty = cartMap
+                ? getVariantQuantityInCart(cartMap, product.id, variant.id, variant.isDefault)
+                : 0;
+
+              return (
+                <button
+                  key={variant.id}
+                  id={`card-variant-btn-${product.id}-${variant.id}`}
+                  type="button"
+                  disabled={isVariantOutOfStock}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedVariantId(variant.id);
+                  }}
+                  className={`relative px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg text-[11px] sm:text-xs font-semibold border transition-all duration-150 flex items-center gap-1 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#004B68] ${
+                    isSelected
+                      ? 'bg-[#004B68] text-white border-[#004B68] shadow-2xs'
+                      : isVariantOutOfStock
+                      ? 'bg-[#F2F3ED] text-[#626B69]/40 border-[#E7E7DF] line-through cursor-not-allowed'
+                      : 'bg-[#FAFAF6] text-[#172126] border-[#E7E7DF] hover:border-[#37B4A1] hover:text-[#004B68] cursor-pointer'
+                  }`}
+                  aria-pressed={isSelected}
+                  title={isVariantOutOfStock ? `${variant.label} (Out of stock)` : variant.label}
+                >
+                  <span>{variant.label}</span>
+                  {variantQty > 0 && (
+                    <span
+                      className={`text-[9px] sm:text-[10px] px-1 py-0.2 rounded font-bold leading-none ${
+                        isSelected
+                          ? 'bg-white/25 text-white'
+                          : 'bg-[#53B847]/15 text-[#53B847]'
+                      }`}
+                    >
+                      {variantQty}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-[11px] sm:text-[12px] text-[#626B69] mt-0.5 sm:mt-1 font-normal truncate">
+            {product.packSize}
+          </p>
+        )}
       </div>
 
       {/* BOTTOM ROW: Price and Action Button States */}
@@ -128,62 +256,89 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {/* Price display with optional strikethrough */}
         <div className="flex items-baseline gap-1 sm:gap-1.5 min-w-0">
           <span className="text-[16px] sm:text-[18px] md:text-[19px] font-bold text-[#172126] tracking-tight">
-            ₹{product.price}
+            ₹{currentPrice}
           </span>
-          {product.originalPrice && product.originalPrice > product.price && (
+          {currentOriginalPrice && currentOriginalPrice > currentPrice && (
             <span className="text-[11px] sm:text-[12px] text-[#626B69] line-through truncate">
-              ₹{product.originalPrice}
+              ₹{currentOriginalPrice}
             </span>
           )}
         </div>
 
-        {/* ACTION BUTTON: STATES 1, 2, 4 */}
+        {/* ACTION BUTTON: Single vs Multi-variant Handlers */}
         <div className="shrink-0">
-          {isOutOfStock ? (
-            /* STATE 4: Out of stock notify */
+          {isCurrentVariantOutOfStock ? (
+            /* Out of stock notify */
             <button
-              id={`notify-btn-${product.id}`}
+              id={`notify-btn-${product.id}${isMultiVariant ? `-${activeVariant.id}` : ''}`}
               type="button"
-              onClick={() => onNotifyMe && onNotifyMe(product)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onNotifyMe && onNotifyMe(product);
+              }}
               className="inline-flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-xs font-semibold text-[#004B68] bg-[#F2F3ED] hover:bg-[#E7E7DF] rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#004B68]"
             >
               <Bell className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               <span className="hidden xs:inline">Notify</span>
               <span className="xs:hidden">Notify</span>
             </button>
-          ) : isAdded ? (
-            /* STATE 2: Added Quantity Controller [ −  2  + ] */
-            <div className="inline-flex items-center bg-[#53B847] text-white rounded-lg p-0.5 shadow-xs">
+          ) : isCurrentVariantAdded ? (
+            /* Added Quantity Controller [ −  qty  + ] */
+            <div
+              className="inline-flex items-center bg-[#53B847] text-white rounded-lg p-0.5 shadow-xs"
+              onClick={(e) => e.stopPropagation()}
+            >
               <button
-                id={`cart-decrease-${product.id}`}
+                id={`cart-decrease-${product.id}${isMultiVariant ? `-${activeVariant.id}` : ''}`}
                 type="button"
-                onClick={() => onUpdateQuantity(product, quantityInCart - 1)}
-                className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center hover:bg-black/10 rounded-md transition-colors focus:outline-none"
-                aria-label={`Decrease quantity of ${product.name}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUpdateQuantity(
+                    product,
+                    currentVariantQuantity - 1,
+                    isMultiVariant ? activeVariant : undefined
+                  );
+                }}
+                className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center hover:bg-black/10 rounded-md transition-colors focus:outline-none cursor-pointer"
+                aria-label={`Decrease quantity of ${product.name}${isMultiVariant ? ` ${activeVariant.label}` : ''}`}
               >
                 <Minus className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
               </button>
               <span className="w-5 sm:w-6 text-center text-[11px] sm:text-xs font-bold select-none">
-                {quantityInCart}
+                {currentVariantQuantity}
               </span>
               <button
-                id={`cart-increase-${product.id}`}
+                id={`cart-increase-${product.id}${isMultiVariant ? `-${activeVariant.id}` : ''}`}
                 type="button"
-                disabled={product.stockCount !== undefined && quantityInCart >= product.stockCount}
-                onClick={() => onUpdateQuantity(product, quantityInCart + 1)}
-                className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center hover:bg-black/10 rounded-md transition-colors focus:outline-none disabled:opacity-30 disabled:cursor-not-allowed"
-                aria-label={`Increase quantity of ${product.name}`}
-                title={product.stockCount !== undefined && quantityInCart >= product.stockCount ? `Only ${product.stockCount} in stock` : `Increase quantity of ${product.name}`}
+                disabled={currentStockLimit !== undefined && currentVariantQuantity >= currentStockLimit}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onUpdateQuantity(
+                    product,
+                    currentVariantQuantity + 1,
+                    isMultiVariant ? activeVariant : undefined
+                  );
+                }}
+                className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center hover:bg-black/10 rounded-md transition-colors focus:outline-none disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                aria-label={`Increase quantity of ${product.name}${isMultiVariant ? ` ${activeVariant.label}` : ''}`}
+                title={
+                  currentStockLimit !== undefined && currentVariantQuantity >= currentStockLimit
+                    ? `Only ${currentStockLimit} in stock`
+                    : `Increase quantity of ${product.name}${isMultiVariant ? ` ${activeVariant.label}` : ''}`
+                }
               >
                 <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
               </button>
             </div>
           ) : (
-            /* STATE 1: Available [ ADD ] Button */
+            /* Available [ ADD ] Button */
             <button
-              id={`add-to-cart-btn-${product.id}`}
+              id={`add-to-cart-btn-${product.id}${isMultiVariant ? `-${activeVariant.id}` : ''}`}
               type="button"
-              onClick={() => onAddToCart(product)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onAddToCart(product, isMultiVariant ? activeVariant : undefined);
+              }}
               className="inline-flex items-center justify-center px-2.5 sm:px-4 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold text-[#53B847] hover:text-white bg-white hover:bg-[#53B847] border border-[#53B847] rounded-lg transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#53B847] cursor-pointer shadow-2xs min-h-[30px] sm:min-h-[34px]"
             >
               ADD

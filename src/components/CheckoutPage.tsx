@@ -20,6 +20,7 @@ import {
 import {
   CartItem,
   Product,
+  ProductVariant,
   DeliveryLocation,
   CheckoutAddress,
   DeliverySlot,
@@ -29,6 +30,10 @@ import {
 } from '../types';
 import { AVAILABLE_LOCATIONS } from '../data/products';
 import { useScrollLock } from '../hooks/useScrollLock';
+import { useDataService } from '../providers/DataProvider';
+import { useTheme } from '../providers/ThemeProvider';
+import { useActiveStore } from '../providers/StoreProvider';
+import { useConfig } from '../providers/ConfigProvider';
 
 interface CheckoutPageProps {
   cartItems: CartItem[];
@@ -36,7 +41,7 @@ interface CheckoutPageProps {
   deliveryLocation: DeliveryLocation;
   isLoggedIn: boolean;
   onNavigate: (path: string) => void;
-  onUpdateQuantity: (product: Product, newQuantity: number) => void;
+  onUpdateQuantity: (product: Product, newQuantity: number, variant?: ProductVariant) => void;
   onTriggerToast: (message: string) => void;
 }
 
@@ -82,6 +87,45 @@ const TEMPORARY_DELIVERY_SLOTS: DeliverySlot[] = [
 ];
 
 /**
+ * Fashion delivery and shipping options for Atelier theme.
+ */
+const ATELIER_DELIVERY_SLOTS: DeliverySlot[] = [
+  {
+    id: 'slot-atelier-express',
+    date: 'express',
+    displayDate: 'Express Courier Dispatch',
+    startTime: '09:00',
+    endTime: '18:00',
+    displayTime: '1 – 2 Business Days',
+    available: true,
+    capacity: 25,
+    note: 'Priority air courier with insured packaging',
+  },
+  {
+    id: 'slot-atelier-standard',
+    date: 'standard',
+    displayDate: 'Standard Insured Shipping',
+    startTime: '09:00',
+    endTime: '18:00',
+    displayTime: '3 – 5 Business Days',
+    available: true,
+    capacity: 50,
+    note: 'Eco-conscious garment courier packaging',
+  },
+  {
+    id: 'slot-atelier-boutique',
+    date: 'boutique',
+    displayDate: 'Boutique Studio Pickup',
+    startTime: '11:00',
+    endTime: '19:00',
+    displayTime: 'Same Day at Flagship Atelier',
+    available: true,
+    capacity: 10,
+    note: 'Personal fitting & complimentary tailoring consultation',
+  },
+];
+
+/**
  * Payment method options.
  * Clearly communicates that live gateway integration is not connected yet.
  */
@@ -118,30 +162,41 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
   onUpdateQuantity,
   onTriggerToast,
 }) => {
-  // 1. Calculations reusing existing Haaply business logic
+  const dataService = useDataService();
+  const { theme } = useTheme();
+  const { store: activeStore } = useActiveStore();
+  const { site } = useConfig();
+  const isAtelier = activeStore.vertical === 'fashion' || activeStore.id === 'store-atelier';
+
+  const deliverySlots = isAtelier ? ATELIER_DELIVERY_SLOTS : TEMPORARY_DELIVERY_SLOTS;
+
+  // 1. Calculations sourced directly from StoreInstance / SiteConfig
   const subtotal = useMemo(() => {
     return cartItems.reduce(
-      (sum, item) => sum + item.product.price * item.quantity,
+      (sum, item) => sum + (item.variant?.price ?? item.product.price) * item.quantity,
       0
     );
   }, [cartItems]);
 
-  const deliveryFee = subtotal >= 199 || subtotal === 0 ? 0 : 25;
+  const freeDeliveryThreshold = site.delivery.freeDeliveryThreshold ?? (isAtelier ? 5000 : 199);
+  const standardFee = site.delivery.standardDeliveryFee ?? (isAtelier ? 150 : 25);
+  const deliveryFee = subtotal >= freeDeliveryThreshold || subtotal === 0 ? 0 : standardFee;
   const grandTotal = subtotal + deliveryFee;
   const totalItemsCount = useMemo(() => {
     return cartItems.reduce((acc, item) => acc + item.quantity, 0);
   }, [cartItems]);
 
-  // 2. State: Delivery Address (Neutral temporary defaults based on current deliveryLocation)
+  // 2. State: Delivery Address (Neutral temporary defaults based on store territory)
   const [address, setAddress] = useState<CheckoutAddress>({
-    recipientName: isLoggedIn ? 'Customer' : '',
-    phone: '',
-    houseFlat: '',
-    street: '',
-    area: deliveryLocation.area || 'Rangasamy Nagar',
-    city: deliveryLocation.city || 'Coimbatore',
-    pincode: deliveryLocation.pincode || '641007',
-    landmark: deliveryLocation.landmark || '',
+    storeId: activeStore.id,
+    recipientName: isLoggedIn ? (isAtelier ? 'Ananya Sharma' : 'Customer') : '',
+    phone: isAtelier ? '9880123456' : '',
+    houseFlat: isAtelier ? 'Penthouse 12, Sobha Primrose' : '',
+    street: isAtelier ? 'Lavelle Road' : '',
+    area: isAtelier ? 'Lavelle Road' : (deliveryLocation.area || 'Rangasamy Nagar'),
+    city: isAtelier ? 'Bangalore' : (deliveryLocation.city || 'Coimbatore'),
+    pincode: isAtelier ? '560001' : (deliveryLocation.pincode || '641007'),
+    landmark: isAtelier ? 'Near Bangalore Club' : (deliveryLocation.landmark || ''),
     deliveryInstructions: '',
   });
 
@@ -155,7 +210,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
 
   // 3. State: Selected Delivery Slot
   const [selectedSlotId, setSelectedSlotId] = useState<string>(
-    TEMPORARY_DELIVERY_SLOTS[0]?.id || ''
+    deliverySlots[0]?.id || ''
   );
 
   // 4. State: Selected Payment Method
@@ -173,18 +228,21 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
 
   // 6. Stock Check / Cart Revalidation
   const stockDiscrepancies = useMemo(() => {
-    const issues: { product: Product; requested: number; available: number }[] = [];
+    const issues: { product: Product; variant?: ProductVariant; requested: number; available: number }[] = [];
     for (const item of cartItems) {
-      if (item.product.stockStatus === 'out_of_stock') {
-        issues.push({ product: item.product, requested: item.quantity, available: 0 });
+      const stockStatus = item.variant?.stockStatus ?? item.product.stockStatus;
+      const stockCount = item.variant?.stockCount ?? item.product.stockCount;
+      if (stockStatus === 'out_of_stock') {
+        issues.push({ product: item.product, variant: item.variant, requested: item.quantity, available: 0 });
       } else if (
-        item.product.stockCount !== undefined &&
-        item.quantity > item.product.stockCount
+        stockCount !== undefined &&
+        item.quantity > stockCount
       ) {
         issues.push({
           product: item.product,
+          variant: item.variant,
           requested: item.quantity,
-          available: item.product.stockCount,
+          available: stockCount,
         });
       }
     }
@@ -253,13 +311,13 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
   };
 
   // Handle Place Order Boundary
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     setFormValidationNotice(null);
     setBackendBoundaryNotice(null);
 
     // 1. Cart check
     if (cartItems.length === 0) {
-      setFormValidationNotice('Your basket is empty. Please add fresh items before placing an order.');
+      setFormValidationNotice(isAtelier ? 'Your shopping bag is empty.' : 'Your basket is empty. Please add fresh items before placing an order.');
       onNavigate('/cart');
       return;
     }
@@ -281,9 +339,9 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
     }
 
     // 4. Delivery slot check
-    const selectedSlot = TEMPORARY_DELIVERY_SLOTS.find((s) => s.id === selectedSlotId);
+    const selectedSlot = deliverySlots.find((s) => s.id === selectedSlotId) || deliverySlots[0];
     if (!selectedSlot) {
-      setFormValidationNotice('Please select a preferred delivery slot.');
+      setFormValidationNotice(isAtelier ? 'Please select a preferred shipping method.' : 'Please select a preferred delivery slot.');
       return;
     }
 
@@ -297,18 +355,43 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
     if (isSubmitting) return;
     setIsSubmitting(true);
 
+    // Resolve fulfillment location via FulfillmentService abstraction boundary
+    let fulfillmentLocationId: string | undefined;
+    try {
+      const resolvedLocation = await dataService.fulfillment.resolveFulfillmentLocation({
+        deliveryAddress: address,
+        pincode: address.pincode,
+        city: address.city,
+      });
+      fulfillmentLocationId = resolvedLocation?.id || dataService.fulfillment.getDefaultLocationId();
+    } catch {
+      fulfillmentLocationId = dataService.fulfillment.getDefaultLocationId();
+    }
+
     // 7. Prepare clean, non-persisted Order Payload structure for future backend integration
     const orderPayload: OrderPayload = {
+      storeId: activeStore.id,
+      customerId: isLoggedIn ? (isAtelier ? 'cust-atelier-001' : 'cust-haaply-001') : undefined,
       recipientName: address.recipientName,
       phone: address.phone,
-      items: cartItems.map((item) => ({
-        productId: item.product.id,
-        productName: item.product.name,
-        packSize: item.product.packSize,
-        price: item.product.price,
-        quantity: item.quantity,
-        subtotal: item.product.price * item.quantity,
-      })),
+      fulfillmentLocationId,
+      items: cartItems.map((item) => {
+        const variant = item.variant;
+        const unitPrice = variant?.price ?? item.product.price;
+        const packSize = variant?.options
+          ? Object.entries(variant.options).map(([k, v]) => `${k}: ${v}`).join(' • ')
+          : (variant?.packSize || variant?.label || item.product.packSize);
+        const variantId = variant?.id || item.product.id;
+        return {
+          productId: item.product.id,
+          variantId,
+          productName: item.product.name,
+          packSize,
+          price: unitPrice,
+          quantity: item.quantity,
+          subtotal: unitPrice * item.quantity,
+        };
+      }),
       subtotal,
       deliveryFee,
       grandTotal,
@@ -324,6 +407,11 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
     if (process.env.NODE_ENV !== 'production') {
       console.info('[Haaply Checkout Boundary Payload Prepared]:', orderPayload);
     }
+
+    // Record order in active data provider queue
+    dataService.orders.createOrder(orderPayload).catch((err) => {
+      console.warn('[Checkout] Active provider queue recorded with notice:', err);
+    });
 
     // Intentionally communicate the non-deceptive boundary: Backend is not connected yet.
     setTimeout(() => {
@@ -345,23 +433,29 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
         className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-10 py-10 sm:py-16 text-center"
       >
         <div className="bg-white rounded-[22px] border border-[#E7E7DF] p-8 sm:p-12 md:p-14 max-w-xl mx-auto shadow-xs">
-          <div className="w-16 h-16 rounded-full bg-[#F2F3ED] text-[#004B68] flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 rounded-full bg-[#F2F3ED] text-[#626B69] flex items-center justify-center mx-auto mb-4">
             <ShoppingBag className="w-8 h-8 stroke-[1.5]" />
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-[#004B68] tracking-tight">
-            Your Basket is Empty
+          <h1 className={`text-xl sm:text-2xl font-bold tracking-tight ${
+            isAtelier ? 'text-[#141414] font-serif' : 'text-[#004B68]'
+          }`}>
+            {isAtelier ? 'Your Shopping Bag is Empty' : 'Your Basket is Empty'}
           </h1>
           <p className="text-sm text-[#626B69] mt-2 leading-relaxed">
-            There are no items to check out right now. Explore today's freshly ground batters, wholesome millets, and morning essentials.
+            {isAtelier
+              ? 'There are no pieces to check out right now. Explore contemporary tailored silhouettes, fine-knit layers, and luxury natural fabrics.'
+              : "There are no items to check out right now. Explore today's freshly ground batters, wholesome millets, and morning essentials."}
           </p>
           <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
             <button
               id="checkout-empty-shop-btn"
               type="button"
               onClick={() => onNavigate('/shop')}
-              className="w-full sm:w-auto px-6 py-3 bg-[#53B847] hover:bg-[#469e3c] text-white text-sm font-bold rounded-xl transition-colors shadow-xs"
+              className={`w-full sm:w-auto px-6 py-3 text-white text-sm font-bold rounded-xl transition-colors shadow-xs ${
+                isAtelier ? 'bg-[#181818] hover:bg-black uppercase tracking-wider text-xs' : 'bg-[#53B847] hover:bg-[#469e3c]'
+              }`}
             >
-              Browse Fresh Shop
+              {isAtelier ? 'Browse Collection' : 'Browse Fresh Shop'}
             </button>
             <button
               id="checkout-empty-home-btn"
@@ -377,7 +471,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
     );
   }
 
-  const selectedSlot = TEMPORARY_DELIVERY_SLOTS.find((s) => s.id === selectedSlotId);
+  const selectedSlot = deliverySlots.find((s) => s.id === selectedSlotId) || deliverySlots[0];
 
   return (
     <main
@@ -405,7 +499,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
           onClick={() => onNavigate('/cart')}
           className="hover:text-[#004B68] transition-colors focus:outline-none"
         >
-          Your Basket
+          {isAtelier ? 'Shopping Bag' : 'Your Basket'}
         </button>
         <span className="text-[#626B69]/60">/</span>
         <span className="font-semibold text-[#172126]">Checkout</span>
@@ -416,12 +510,16 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
         <div>
           <h1
             id="checkout-heading"
-            className="text-2xl sm:text-3xl font-bold text-[#004B68] tracking-tight"
+            className={`text-2xl sm:text-3xl font-bold tracking-tight ${
+              isAtelier ? 'text-[#141414] font-serif' : 'text-[#004B68]'
+            }`}
           >
-            Checkout & Delivery
+            {isAtelier ? 'Atelier Checkout' : 'Checkout & Delivery'}
           </h1>
           <p className="text-xs sm:text-sm text-[#626B69] mt-1">
-            Confirm your delivery address, choose a dispatch slot, and review your items.
+            {isAtelier
+              ? 'Confirm your delivery address, shipping method, and review your selected pieces.'
+              : 'Confirm your delivery address, choose a dispatch slot, and review your items.'}
           </p>
         </div>
 
@@ -429,10 +527,12 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
           id="checkout-back-to-cart-top"
           type="button"
           onClick={() => onNavigate('/cart')}
-          className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[#53B847] hover:text-[#469e3c] transition-colors py-1 focus:outline-none self-start sm:self-auto"
+          className={`inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold transition-colors py-1 focus:outline-none self-start sm:self-auto ${
+            isAtelier ? 'text-[#181818] hover:text-[#767676]' : 'text-[#53B847] hover:text-[#469e3c]'
+          }`}
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Back to Basket</span>
+          <span>{isAtelier ? 'Back to Bag' : 'Back to Basket'}</span>
         </button>
       </div>
 
@@ -450,8 +550,8 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
             </p>
             <ul className="list-disc list-inside mt-1 space-y-0.5 text-xs">
               {stockDiscrepancies.map((d) => (
-                <li key={d.product.id}>
-                  <strong>{d.product.name}</strong>: Requested {d.requested} unit(s), but only {d.available} available.
+                <li key={d.variant ? `${d.product.id}:${d.variant.id}` : d.product.id}>
+                  <strong>{d.product.name}{d.variant?.label ? ` (${d.variant.label})` : ''}</strong>: Requested {d.requested} unit(s), but only {d.available} available.
                 </li>
               ))}
             </ul>
@@ -531,18 +631,22 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
           >
             <div className="flex items-center justify-between pb-4 border-b border-[#E7E7DF]/70">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-[#53B847]/10 text-[#53B847] flex items-center justify-center font-bold text-xs">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${
+                  isAtelier ? 'bg-[#181818] text-white' : 'bg-[#53B847]/10 text-[#53B847]'
+                }`}>
                   1
                 </div>
                 <div>
                   <h2
                     id="address-section-heading"
-                    className="text-base sm:text-lg font-bold text-[#004B68]"
+                    className={`text-base sm:text-lg font-bold ${
+                      isAtelier ? 'text-[#141414] font-serif' : 'text-[#004B68]'
+                    }`}
                   >
-                    Delivery Address
+                    {isAtelier ? 'Shipping Address' : 'Delivery Address'}
                   </h2>
                   <p className="text-[11px] sm:text-xs text-[#626B69]">
-                    Where should we bring your fresh morning dispatch?
+                    {isAtelier ? 'Where should we deliver your tailored pieces?' : 'Where should we bring your fresh morning dispatch?'}
                   </p>
                 </div>
               </div>
@@ -551,7 +655,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                 id="checkout-edit-address-btn"
                 type="button"
                 onClick={handleOpenAddressModal}
-                className="inline-flex items-center gap-1 text-xs font-bold text-[#004B68] hover:text-[#53B847] transition-colors px-3 py-1.5 rounded-lg border border-[#E7E7DF] hover:bg-[#F2F3ED]"
+                className="inline-flex items-center gap-1 text-xs font-bold text-[#172126] hover:text-[#53B847] transition-colors px-3 py-1.5 rounded-lg border border-[#E7E7DF] hover:bg-[#F2F3ED]"
               >
                 <Edit2 className="w-3.5 h-3.5" />
                 <span>{isAddressComplete ? 'Change' : 'Enter Details'}</span>
@@ -563,7 +667,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
               {isAddressComplete ? (
                 <div className="p-4 rounded-xl bg-[#FAFAF6] border border-[#E7E7DF]/80 text-xs sm:text-sm text-[#172126]">
                   <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <span className="font-bold text-sm text-[#004B68]">
+                    <span className={`font-bold text-sm ${isAtelier ? 'text-[#141414]' : 'text-[#004B68]'}`}>
                       {address.recipientName}
                     </span>
                     <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#E7E7DF]/60 text-[#626B69]">
@@ -582,7 +686,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                     </p>
                   )}
                   {address.deliveryInstructions && (
-                    <p className="text-[11px] text-[#53B847] font-medium mt-1">
+                    <p className={`text-[11px] font-medium mt-1 ${isAtelier ? 'text-[#181818]' : 'text-[#53B847]'}`}>
                       Instructions: {address.deliveryInstructions}
                     </p>
                   )}
@@ -600,7 +704,9 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                   <button
                     type="button"
                     onClick={handleOpenAddressModal}
-                    className="px-4 py-2 bg-[#004B68] text-white text-xs font-bold rounded-lg hover:bg-[#00384e] transition-colors shrink-0 self-start sm:self-auto"
+                    className={`px-4 py-2 text-white text-xs font-bold rounded-lg transition-colors shrink-0 self-start sm:self-auto ${
+                      isAtelier ? 'bg-[#181818] hover:bg-black' : 'bg-[#004B68] hover:bg-[#00384e]'
+                    }`}
                   >
                     Add Address
                   </button>
@@ -617,37 +723,45 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
           >
             <div className="flex items-center justify-between pb-4 border-b border-[#E7E7DF]/70">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-[#53B847]/10 text-[#53B847] flex items-center justify-center font-bold text-xs">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${
+                  isAtelier ? 'bg-[#181818] text-white' : 'bg-[#53B847]/10 text-[#53B847]'
+                }`}>
                   2
                 </div>
                 <div>
                   <h2
                     id="slot-section-heading"
-                    className="text-base sm:text-lg font-bold text-[#004B68]"
+                    className={`text-base sm:text-lg font-bold ${
+                      isAtelier ? 'text-[#141414] font-serif' : 'text-[#004B68]'
+                    }`}
                   >
-                    Delivery Slot
+                    {isAtelier ? 'Shipping Method' : 'Delivery Slot'}
                   </h2>
                   <p className="text-[11px] sm:text-xs text-[#626B69]">
-                    Select when you would like this order freshly delivered
+                    {isAtelier ? 'Select your preferred courier service speed' : 'Select when you would like this order freshly delivered'}
                   </p>
                 </div>
               </div>
 
-              <span className="text-[11px] font-semibold text-[#53B847] bg-[#53B847]/10 px-2.5 py-1 rounded-full">
-                Guaranteed Fresh
+              <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${
+                isAtelier ? 'text-[#181818] bg-[#181818]/10' : 'text-[#53B847] bg-[#53B847]/10'
+              }`}>
+                {isAtelier ? 'Insured Courier' : 'Guaranteed Fresh'}
               </span>
             </div>
 
             {/* Slots Grid */}
             <div className="mt-4 space-y-2.5">
-              {TEMPORARY_DELIVERY_SLOTS.map((slot) => {
+              {deliverySlots.map((slot) => {
                 const isSelected = selectedSlotId === slot.id;
                 return (
                   <label
                     key={slot.id}
                     className={`flex items-start justify-between p-3.5 sm:p-4 rounded-xl border transition-all cursor-pointer ${
                       isSelected
-                        ? 'border-[#53B847] bg-[#53B847]/5 shadow-xs'
+                        ? isAtelier
+                          ? 'border-[#181818] bg-[#181818]/5 shadow-xs'
+                          : 'border-[#53B847] bg-[#53B847]/5 shadow-xs'
                         : 'border-[#E7E7DF] hover:border-[#626B69]/40 bg-white'
                     }`}
                   >
@@ -658,14 +772,16 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                         value={slot.id}
                         checked={isSelected}
                         onChange={() => setSelectedSlotId(slot.id)}
-                        className="mt-1 h-4 w-4 text-[#53B847] focus:ring-[#53B847] border-[#E7E7DF]"
+                        className={`mt-1 h-4 w-4 border-[#E7E7DF] ${
+                          isAtelier ? 'text-[#181818] focus:ring-[#181818]' : 'text-[#53B847] focus:ring-[#53B847]'
+                        }`}
                       />
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-bold text-[#172126]">
                             {slot.displayDate}
                           </span>
-                          <span className="text-xs font-semibold text-[#004B68] bg-[#E7E7DF]/50 px-2 py-0.5 rounded-md">
+                          <span className="text-xs font-semibold text-[#181818] bg-[#E7E7DF]/50 px-2 py-0.5 rounded-md">
                             {slot.displayTime}
                           </span>
                         </div>
@@ -678,7 +794,9 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                     </div>
 
                     <div className="text-right shrink-0">
-                      <span className="text-[11px] font-semibold text-[#53B847] flex items-center gap-1 justify-end">
+                      <span className={`text-[11px] font-semibold flex items-center gap-1 justify-end ${
+                        isAtelier ? 'text-[#181818]' : 'text-[#53B847]'
+                      }`}>
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         Available
                       </span>
@@ -690,7 +808,11 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
 
             <p className="text-[11px] text-[#626B69] mt-3 flex items-center gap-1.5">
               <Info className="w-3.5 h-3.5 text-[#626B69] shrink-0" />
-              <span>Slots reflect scheduled dispatch rounds from our Coimbatore local kitchen.</span>
+              <span>
+                {isAtelier
+                  ? 'Orders are packaged in breathable protective garment covers and shipped via insured courier.'
+                  : 'Slots reflect scheduled dispatch rounds from our Coimbatore local kitchen.'}
+              </span>
             </p>
           </section>
 
@@ -785,40 +907,52 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
             className="bg-white rounded-[20px] border border-[#E7E7DF] p-5 sm:p-6 shadow-xs"
           >
             <div className="flex items-center justify-between pb-3.5 border-b border-[#E7E7DF]/70">
-              <h3 className="text-base sm:text-lg font-bold text-[#004B68]">
+              <h3 className={`text-base sm:text-lg font-bold ${
+                isAtelier ? 'text-[#141414] font-serif' : 'text-[#004B68]'
+              }`}>
                 Order Summary
               </h3>
               <button
                 type="button"
                 onClick={() => onNavigate('/cart')}
-                className="text-xs font-semibold text-[#53B847] hover:underline"
+                className={`text-xs font-semibold hover:underline ${
+                  isAtelier ? 'text-[#181818]' : 'text-[#53B847]'
+                }`}
               >
-                Edit basket · {totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'}
+                {isAtelier ? 'Edit bag' : 'Edit basket'} · {totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'}
               </button>
             </div>
 
             {/* Item List (naturally content-driven, no internal scrollbar) */}
             <div className="py-3 divide-y divide-[#E7E7DF]/60">
-              {cartItems.map((item) => (
-                <div
-                  key={item.product.id}
-                  className="py-2.5 flex items-center justify-between gap-3 text-xs"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-[#172126] truncate">
-                      {item.product.name}
-                    </p>
-                    <p className="text-[11px] text-[#626B69]">
-                      {item.product.packSize} × {item.quantity}
-                    </p>
+              {cartItems.map((item) => {
+                const variant = item.variant;
+                const unitPrice = variant?.price ?? item.product.price;
+                const packDisplay = variant?.options
+                  ? Object.entries(variant.options).map(([k, v]) => `${k}: ${v}`).join(' • ')
+                  : (variant?.packSize || variant?.label || item.product.packSize);
+                const itemKey = variant ? `${item.product.id}:${variant.id}` : item.product.id;
+                return (
+                  <div
+                    key={itemKey}
+                    className="py-2.5 flex items-center justify-between gap-3 text-xs"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-[#172126] truncate">
+                        {item.product.name}
+                      </p>
+                      <p className="text-[11px] text-[#626B69]">
+                        {packDisplay} × {item.quantity}
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="font-bold text-[#172126]">
+                        ₹{unitPrice * item.quantity}
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-right shrink-0">
-                    <span className="font-bold text-[#172126]">
-                      ₹{item.product.price * item.quantity}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Price Calculations */}
@@ -829,9 +963,9 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
               </div>
 
               <div className="flex items-center justify-between text-[#626B69]">
-                <span>Delivery Charge</span>
+                <span>{isAtelier ? 'Shipping Fee' : 'Delivery Charge'}</span>
                 {deliveryFee === 0 ? (
-                  <span className="font-bold text-[#53B847]">FREE</span>
+                  <span className={`font-bold ${isAtelier ? 'text-[#181818]' : 'text-[#53B847]'}`}>FREE</span>
                 ) : (
                   <span className="font-medium text-[#172126]">₹{deliveryFee}</span>
                 )}
@@ -839,14 +973,20 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
 
               {deliveryFee > 0 && (
                 <p className="text-[10px] text-[#626B69] bg-[#FAFAF6] p-2 rounded-lg border border-[#E7E7DF]/60">
-                  Add ₹{199 - subtotal} more of fresh items for <strong>Free Delivery</strong>.
+                  {isAtelier
+                    ? `Add ₹${freeDeliveryThreshold - subtotal} more of collection pieces for Complimentary Courier Shipping.`
+                    : `Add ₹${freeDeliveryThreshold - subtotal} more of fresh items for Free Delivery.`}
                 </p>
               )}
 
-              <div className="pt-3 border-t border-[#E7E7DF] flex items-baseline justify-between text-[#004B68]">
+              <div className={`pt-3 border-t border-[#E7E7DF] flex items-baseline justify-between ${
+                isAtelier ? 'text-[#141414]' : 'text-[#004B68]'
+              }`}>
                 <span className="text-sm sm:text-base font-bold">Grand Total</span>
                 <div className="text-right">
-                  <span className="text-lg sm:text-xl font-black text-[#004B68]">
+                  <span className={`text-lg sm:text-xl font-black ${
+                    isAtelier ? 'text-[#141414]' : 'text-[#004B68]'
+                  }`}>
                     ₹{grandTotal}
                   </span>
                 </div>
@@ -860,9 +1000,13 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                 type="button"
                 onClick={handlePlaceOrder}
                 disabled={isSubmitting}
-                className="w-full py-3.5 px-4 bg-[#53B847] hover:bg-[#469e3c] active:bg-[#3d8c34] text-white font-bold text-sm sm:text-base rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className={`w-full py-3.5 px-4 text-white font-bold text-sm sm:text-base rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${
+                  isAtelier
+                    ? 'bg-[#181818] hover:bg-black active:bg-[#2c2c2c] uppercase tracking-wider text-xs'
+                    : 'bg-[#53B847] hover:bg-[#469e3c] active:bg-[#3d8c34]'
+                }`}
               >
-                <span>{isSubmitting ? 'Verifying Basket...' : 'Place Order'}</span>
+                <span>{isSubmitting ? (isAtelier ? 'Verifying Bag...' : 'Verifying Basket...') : 'Place Order'}</span>
                 <ChevronRight className="w-4 h-4" />
               </button>
               <p className="text-[10px] text-center text-[#626B69] mt-2">
@@ -873,12 +1017,12 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
             {/* Trust Badges */}
             <div className="mt-5 pt-4 border-t border-[#E7E7DF]/70 grid grid-cols-2 gap-2 text-[11px] text-[#626B69]">
               <div className="flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-[#53B847] shrink-0" />
-                <span>100% Natural Fresh</span>
+                <ShieldCheck className={`w-4 h-4 shrink-0 ${isAtelier ? 'text-[#181818]' : 'text-[#53B847]'}`} />
+                <span>{isAtelier ? 'Authentic Natural Fabrics' : '100% Natural Fresh'}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-[#004B68] shrink-0" />
-                <span>Early Morning Dispatch</span>
+                <Clock className={`w-4 h-4 shrink-0 ${isAtelier ? 'text-[#767676]' : 'text-[#004B68]'}`} />
+                <span>{isAtelier ? 'Insured Express Courier' : 'Early Morning Dispatch'}</span>
               </div>
             </div>
           </div>
@@ -896,11 +1040,11 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
               Grand Total
             </p>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-lg font-black text-[#004B68]">
+              <span className={`text-lg font-black ${isAtelier ? 'text-[#141414]' : 'text-[#004B68]'}`}>
                 ₹{grandTotal}
               </span>
               {deliveryFee === 0 && (
-                <span className="text-[10px] font-bold text-[#53B847]">
+                <span className={`text-[10px] font-bold ${isAtelier ? 'text-[#181818]' : 'text-[#53B847]'}`}>
                   FREE DEL
                 </span>
               )}
@@ -912,7 +1056,9 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
             type="button"
             onClick={handlePlaceOrder}
             disabled={isSubmitting}
-            className="flex-1 max-w-[200px] py-3 px-4 bg-[#53B847] hover:bg-[#469e3c] text-white font-bold text-sm rounded-xl shadow-xs flex items-center justify-center gap-1.5 disabled:opacity-50"
+            className={`flex-1 max-w-[200px] py-3 px-4 text-white font-bold text-sm rounded-xl shadow-xs flex items-center justify-center gap-1.5 disabled:opacity-50 ${
+              isAtelier ? 'bg-[#181818] hover:bg-black uppercase tracking-wider text-xs' : 'bg-[#53B847] hover:bg-[#469e3c]'
+            }`}
           >
             <span>{isSubmitting ? 'Checking...' : 'Place Order'}</span>
             <ChevronRight className="w-4 h-4" />

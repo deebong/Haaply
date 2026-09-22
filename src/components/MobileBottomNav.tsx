@@ -1,5 +1,6 @@
 import React from 'react';
 import { Home, Compass, Search, User, ShoppingBag } from 'lucide-react';
+import { useConfig } from '../providers/ConfigProvider';
 
 interface MobileBottomNavProps {
   activeNav: string;
@@ -20,6 +21,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   onOpenAccount,
   isLoggedIn,
 }) => {
+  const { isFeatureEnabled } = useConfig();
   return (
     <nav
       id="mobile-bottom-nav"
@@ -47,54 +49,60 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         </a>
 
         {/* 2. Shop */}
-        <a
-          id="mobile-nav-shop"
-          href="/shop"
-          onClick={(e) => {
-            e.preventDefault();
-            onNavClick('shop');
-          }}
-          className={`flex-1 flex flex-col items-center justify-center py-1 min-h-[48px] rounded-lg transition-colors duration-150 focus:outline-none ${
-            activeNav === 'shop' || activeNav === 'category' || activeNav === 'product'
-              ? 'text-[#004B68] font-semibold'
-              : 'text-[#626B69] hover:text-[#172126]'
-          }`}
-          aria-label="Shop complete catalog"
-        >
-          <Compass className="w-5 h-5 mb-0.5" />
-          <span className="text-[10px] tracking-tight">Shop</span>
-        </a>
+        {isFeatureEnabled('catalog') && (
+          <a
+            id="mobile-nav-shop"
+            href="/shop"
+            onClick={(e) => {
+              e.preventDefault();
+              onNavClick('shop');
+            }}
+            className={`flex-1 flex flex-col items-center justify-center py-1 min-h-[48px] rounded-lg transition-colors duration-150 focus:outline-none ${
+              activeNav === 'shop' || activeNav === 'category' || activeNav === 'product'
+                ? 'text-[#004B68] font-semibold'
+                : 'text-[#626B69] hover:text-[#172126]'
+            }`}
+            aria-label="Shop complete catalog"
+          >
+            <Compass className="w-5 h-5 mb-0.5" />
+            <span className="text-[10px] tracking-tight">Shop</span>
+          </a>
+        )}
 
         {/* 3. Search */}
-        <button
-          id="mobile-nav-search"
-          type="button"
-          onClick={onOpenSearch}
-          className="flex-1 flex flex-col items-center justify-center py-1 min-h-[48px] text-[#626B69] hover:text-[#172126] rounded-lg transition-colors duration-150 focus:outline-none"
-          aria-label="Search items"
-        >
-          <Search className="w-5 h-5 mb-0.5" />
-          <span className="text-[10px] tracking-tight">Search</span>
-        </button>
+        {isFeatureEnabled('search') && (
+          <button
+            id="mobile-nav-search"
+            type="button"
+            onClick={onOpenSearch}
+            className="flex-1 flex flex-col items-center justify-center py-1 min-h-[48px] text-[#626B69] hover:text-[#172126] rounded-lg transition-colors duration-150 focus:outline-none"
+            aria-label="Search items"
+          >
+            <Search className="w-5 h-5 mb-0.5" />
+            <span className="text-[10px] tracking-tight">Search</span>
+          </button>
+        )}
 
         {/* 4. Account */}
-        <button
-          id="mobile-nav-account"
-          type="button"
-          onClick={onOpenAccount}
-          className="flex-1 flex flex-col items-center justify-center py-1 min-h-[48px] text-[#626B69] hover:text-[#172126] rounded-lg transition-colors duration-150 focus:outline-none"
-          aria-label={isLoggedIn ? 'Account profile' : 'Sign in'}
-        >
-          <div className="relative">
-            <User className="w-5 h-5 mb-0.5" />
-            {isLoggedIn && (
-              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#53B847]" />
-            )}
-          </div>
-          <span className="text-[10px] tracking-tight">
-            {isLoggedIn ? 'Account' : 'Sign in'}
-          </span>
-        </button>
+        {isFeatureEnabled('customerAccounts') && (
+          <button
+            id="mobile-nav-account"
+            type="button"
+            onClick={onOpenAccount}
+            className="flex-1 flex flex-col items-center justify-center py-1 min-h-[48px] text-[#626B69] hover:text-[#172126] rounded-lg transition-colors duration-150 focus:outline-none"
+            aria-label={isLoggedIn ? 'Account profile' : 'Sign in'}
+          >
+            <div className="relative">
+              <User className="w-5 h-5 mb-0.5" />
+              {isLoggedIn && (
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#53B847]" />
+              )}
+            </div>
+            <span className="text-[10px] tracking-tight">
+              {isLoggedIn ? 'Account' : 'Sign in'}
+            </span>
+          </button>
+        )}
 
         {/* 5. Cart */}
         <button

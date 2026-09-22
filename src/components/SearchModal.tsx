@@ -1,8 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { X, Search, ArrowRight } from 'lucide-react';
-import { Product } from '../types';
+import { X, Search } from 'lucide-react';
+import { Product, ProductVariant } from '../types';
 import { ProductCard } from './ProductCard';
 import { useScrollLock } from '../hooks/useScrollLock';
+import { getProductQuantityInCart } from '../utils/productUtils';
+import { useTheme } from '../providers/ThemeProvider';
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -11,8 +13,8 @@ interface SearchModalProps {
   initialQuery?: string;
   cartMap: Record<string, number>;
   wishlistSet: Set<string>;
-  onAddToCart: (product: Product) => void;
-  onUpdateQuantity: (product: Product, newQuantity: number) => void;
+  onAddToCart: (product: Product, variant?: ProductVariant) => void;
+  onUpdateQuantity: (product: Product, newQuantity: number, variant?: ProductVariant) => void;
   onToggleWishlist: (product: Product) => void;
   onNotifyMe?: (product: Product) => void;
   onProductClick?: (product: Product) => void;
@@ -31,6 +33,9 @@ export const SearchModal: React.FC<SearchModalProps> = ({
   onNotifyMe,
   onProductClick,
 }) => {
+  const { theme } = useTheme();
+  const isAtelier = theme.id === 'atelier';
+
   // Centralized scroll-lock: locks document scroll, handles mobile touch, and supports Escape key
   useScrollLock(isOpen, onClose);
 
@@ -42,20 +47,29 @@ export const SearchModal: React.FC<SearchModalProps> = ({
     return products.filter(
       (p) =>
         p.name.toLowerCase().includes(q) ||
-        p.tamilName.toLowerCase().includes(q) ||
+        (p.tamilName && p.tamilName.toLowerCase().includes(q)) ||
         p.category.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q)
+        p.description.toLowerCase().includes(q) ||
+        (p.tags && p.tags.some((t) => t.toLowerCase().includes(q)))
     );
   }, [products, query]);
 
   if (!isOpen) return null;
+
+  const popularSearches = isAtelier
+    ? ['Double-Breasted Coat', 'Silk Shirt', 'Linen Trousers', 'Merino Knit', 'Trench', 'Oatmeal']
+    : ['Dosa Batter', 'Idli Batter', 'Ragi Sevai', 'Chapathi', 'Fresh Paneer', 'Millet'];
+
+  const placeholderText = isAtelier
+    ? 'Search tailored coats, silk shirts, knitwear...'
+    : 'Search fresh batters, millets, paneer...';
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center pt-4 sm:pt-16 px-3 sm:px-4"
       role="dialog"
       aria-modal="true"
-      aria-label="Search fresh products"
+      aria-label={isAtelier ? 'Search fashion collections' : 'Search fresh products'}
     >
       <div
         className="fixed inset-0 bg-[#172126]/40 backdrop-blur-xs transition-opacity touch-none"
@@ -66,12 +80,12 @@ export const SearchModal: React.FC<SearchModalProps> = ({
       <div className="relative w-full max-w-4xl bg-white rounded-[18px] sm:rounded-[22px] shadow-2xl border border-[#E7E7DF] overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] sm:max-h-[85vh] flex flex-col">
         {/* Search Input Bar */}
         <div className="p-3.5 sm:p-5 border-b border-[#E7E7DF] flex items-center gap-2.5 sm:gap-3">
-          <Search className="w-5 h-5 text-[#53B847] shrink-0" />
+          <Search className={`w-5 h-5 shrink-0 ${isAtelier ? 'text-[#181818]' : 'text-[#53B847]'}`} />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search fresh batters, millets, paneer..."
+            placeholder={placeholderText}
             autoFocus
             className="w-full text-base sm:text-lg bg-transparent border-none outline-none text-[#172126] placeholder-[#626B69]"
           />
@@ -95,19 +109,17 @@ export const SearchModal: React.FC<SearchModalProps> = ({
 
         {/* Quick suggestions chips */}
         <div className="px-3 sm:px-5 py-2 sm:py-2.5 bg-[#FAFAF6] border-b border-[#E7E7DF]/70 flex items-center gap-1.5 sm:gap-2 overflow-x-auto text-xs scrollbar-none">
-          <span className="text-[#626B69] shrink-0">Popular searches:</span>
-          {['Dosa Batter', 'Idli Batter', 'Ragi Sevai', 'Chapathi', 'Fresh Paneer', 'Millet'].map(
-            (tag) => (
-              <button
-                key={tag}
-                type="button"
-                onClick={() => setQuery(tag)}
-                className="px-2.5 py-1 bg-white hover:bg-[#F2F3ED] text-[#172126] rounded-lg border border-[#E7E7DF] text-xs font-medium shrink-0 transition-colors"
-              >
-                {tag}
-              </button>
-            )
-          )}
+          <span className="text-[#626B69] shrink-0 text-xs font-medium">Popular:</span>
+          {popularSearches.map((tag) => (
+            <button
+              key={tag}
+              type="button"
+              onClick={() => setQuery(tag)}
+              className="px-2.5 py-1 bg-white hover:bg-[#F2F3ED] text-[#172126] rounded-lg border border-[#E7E7DF] text-xs font-medium shrink-0 transition-colors"
+            >
+              {tag}
+            </button>
+          ))}
         </div>
 
         {/* Results grid */}
@@ -117,7 +129,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
         >
           <div className="flex items-center justify-between mb-3 sm:mb-4">
             <span className="text-xs font-semibold uppercase tracking-wider text-[#626B69]">
-              {query ? `Found ${filteredProducts.length} items` : 'Fresh Recommendations'}
+              {query ? `Found ${filteredProducts.length} items` : (isAtelier ? 'Curated Selection' : 'Fresh Recommendations')}
             </span>
           </div>
 
@@ -127,7 +139,9 @@ export const SearchModal: React.FC<SearchModalProps> = ({
                 No items match "{query}"
               </p>
               <p className="text-xs text-[#626B69] mt-1">
-                Try searching for "batter", "sevai", or "paneer".
+                {isAtelier
+                  ? 'Try searching for "coat", "silk", "knitwear", or "trouser".'
+                  : 'Try searching for "batter", "sevai", or "paneer".'}
               </p>
             </div>
           ) : (
@@ -136,7 +150,8 @@ export const SearchModal: React.FC<SearchModalProps> = ({
                 <ProductCard
                   key={product.id}
                   product={product}
-                  quantityInCart={cartMap[product.id] || 0}
+                  quantityInCart={getProductQuantityInCart(product, cartMap)}
+                  cartMap={cartMap}
                   isWishlisted={wishlistSet.has(product.id)}
                   onAddToCart={onAddToCart}
                   onUpdateQuantity={onUpdateQuantity}

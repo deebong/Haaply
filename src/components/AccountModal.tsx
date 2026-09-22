@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, User, Phone, Check, ShieldCheck, LogOut, Package } from 'lucide-react';
 import { useScrollLock } from '../hooks/useScrollLock';
+import { useTheme } from '../providers/ThemeProvider';
 
 interface AccountModalProps {
   isOpen: boolean;
@@ -19,6 +20,8 @@ export const AccountModal: React.FC<AccountModalProps> = ({
 }) => {
   // Centralized scroll-lock: locks document scroll, handles mobile touch, and supports Escape key
   useScrollLock(isOpen, onClose);
+  const { theme } = useTheme();
+  const isAtelier = theme.id === 'atelier';
 
   const [phoneInput, setPhoneInput] = useState(userPhone || '9843210980');
   const [pinInput, setPinInput] = useState('1234');
@@ -48,9 +51,13 @@ export const AccountModal: React.FC<AccountModalProps> = ({
       <div className="relative w-full max-w-md bg-white rounded-[22px] shadow-2xl border border-[#E7E7DF] overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#E7E7DF] shrink-0">
           <div className="flex items-center gap-2">
-            <User className="w-5 h-5 text-[#004B68]" />
-            <h3 id="account-modal-title" className="text-lg font-bold text-[#004B68]">
-              {isLoggedIn ? 'Customer Account' : 'Sign in to Haaply'}
+            <User className={`w-5 h-5 ${isAtelier ? 'text-[#181818]' : 'text-[#004B68]'}`} />
+            <h3 id="account-modal-title" className={`text-lg font-bold ${
+              isAtelier ? 'text-[#141414] font-serif' : 'text-[#004B68]'
+            }`}>
+              {isLoggedIn
+                ? (isAtelier ? 'Client Profile' : 'Customer Account')
+                : (isAtelier ? 'Sign in to Atelier' : 'Sign in to Haaply')}
             </h3>
           </div>
           <button
@@ -70,15 +77,19 @@ export const AccountModal: React.FC<AccountModalProps> = ({
           {isLoggedIn ? (
             <div className="space-y-5">
               <div className="flex items-center gap-3.5 p-4 rounded-xl bg-[#FAFAF6] border border-[#E7E7DF]">
-                <div className="w-12 h-12 rounded-full bg-[#53B847]/15 flex items-center justify-center text-[#53B847] font-bold text-lg">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${
+                  isAtelier ? 'bg-[#181818] text-white' : 'bg-[#53B847]/15 text-[#53B847]'
+                }`}>
                   K
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-[#172126]">Karthik Subramanian</h4>
                   <p className="text-xs text-[#626B69]">+91 {userPhone}</p>
-                  <span className="inline-flex items-center gap-1 text-[10px] text-[#53B847] font-semibold mt-0.5">
+                  <span className={`inline-flex items-center gap-1 text-[10px] font-semibold mt-0.5 ${
+                    isAtelier ? 'text-[#181818]' : 'text-[#53B847]'
+                  }`}>
                     <ShieldCheck className="w-3 h-3" />
-                    Verified Customer
+                    {isAtelier ? 'Verified Client' : 'Verified Customer'}
                   </span>
                 </div>
               </div>
@@ -86,7 +97,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
               <div className="p-3.5 rounded-xl border border-[#E7E7DF] text-xs space-y-2">
                 <div className="flex items-center justify-between text-[#626B69]">
                   <span className="flex items-center gap-1.5">
-                    <Package className="w-3.5 h-3.5 text-[#004B68]" />
+                    <Package className={`w-3.5 h-3.5 ${isAtelier ? 'text-[#181818]' : 'text-[#004B68]'}`} />
                     Total past orders
                   </span>
                   <strong className="text-[#172126]">12 orders</strong>
@@ -98,7 +109,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
               </div>
 
               <div className="bg-[#F2F3ED] p-3 rounded-xl text-xs text-[#626B69]">
-                💡 You are currently viewing personalized sections (<strong>"Buy again"</strong>). Click logout below to preview the guest state (<strong>"Everyday favourites"</strong>).
+                💡 You are currently viewing personalized preferences. Click logout below to preview the guest state.
               </div>
 
               <button
@@ -116,7 +127,9 @@ export const AccountModal: React.FC<AccountModalProps> = ({
           ) : (
             <form onSubmit={handleSignIn} className="space-y-4">
               <p className="text-xs text-[#626B69] leading-relaxed">
-                Log in with your phone and secure PIN to view your repeat orders, reorder previous items, and track morning fresh delivery.
+                {isAtelier
+                  ? 'Log in with your phone and secure PIN to view your bespoke orders, track insured shipments, and manage saved sizes.'
+                  : 'Log in with your phone and secure PIN to view your repeat orders, reorder previous items, and track morning fresh delivery.'}
               </p>
 
               <div>
@@ -132,7 +145,9 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                     value={phoneInput}
                     onChange={(e) => setPhoneInput(e.target.value)}
                     maxLength={10}
-                    className="w-full pl-12 pr-4 py-2 text-sm bg-white border border-[#E7E7DF] rounded-xl focus:outline-none focus:border-[#53B847]"
+                    className={`w-full pl-12 pr-4 py-2 text-sm bg-white border border-[#E7E7DF] rounded-xl focus:outline-none ${
+                      isAtelier ? 'focus:border-[#181818]' : 'focus:border-[#53B847]'
+                    }`}
                     placeholder="9843210980"
                     required
                   />
@@ -148,7 +163,9 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                   value={pinInput}
                   onChange={(e) => setPinInput(e.target.value)}
                   maxLength={4}
-                  className="w-full px-4 py-2 text-sm bg-white border border-[#E7E7DF] rounded-xl focus:outline-none focus:border-[#53B847] tracking-widest"
+                  className={`w-full px-4 py-2 text-sm bg-white border border-[#E7E7DF] rounded-xl focus:outline-none tracking-widest ${
+                    isAtelier ? 'focus:border-[#181818]' : 'focus:border-[#53B847]'
+                  }`}
                   placeholder="••••"
                   required
                 />
@@ -156,9 +173,11 @@ export const AccountModal: React.FC<AccountModalProps> = ({
 
               <button
                 type="submit"
-                className="w-full py-3 bg-[#53B847] hover:bg-[#469e3c] text-white text-xs font-bold rounded-xl transition-colors mt-2"
+                className={`w-full py-3 text-white text-xs font-bold rounded-xl transition-colors mt-2 ${
+                  isAtelier ? 'bg-[#181818] hover:bg-black uppercase tracking-wider' : 'bg-[#53B847] hover:bg-[#469e3c]'
+                }`}
               >
-                Sign In to Customer Account
+                {isAtelier ? 'Sign In to Client Account' : 'Sign In to Customer Account'}
               </button>
             </form>
           )}

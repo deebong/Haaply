@@ -1,7 +1,8 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
-import { Product } from '../types';
+import { Product, ProductVariant } from '../types';
 import { ProductCard } from './ProductCard';
+import { getProductQuantityInCart } from '../utils/productUtils';
 
 interface ProductGridProps {
   id?: string;
@@ -12,8 +13,8 @@ interface ProductGridProps {
   products: Product[];
   cartMap: Record<string, number>;
   wishlistSet: Set<string>;
-  onAddToCart: (product: Product) => void;
-  onUpdateQuantity: (product: Product, newQuantity: number) => void;
+  onAddToCart: (product: Product, variant?: ProductVariant) => void;
+  onUpdateQuantity: (product: Product, newQuantity: number, variant?: ProductVariant) => void;
   onToggleWishlist: (product: Product) => void;
   onNotifyMe?: (product: Product) => void;
   onProductClick?: (product: Product) => void;
@@ -75,7 +76,8 @@ export const ProductGrid: React.FC<ProductGridProps> = ({
           <ProductCard
             key={product.id}
             product={product}
-            quantityInCart={cartMap[product.id] || 0}
+            quantityInCart={getProductQuantityInCart(product, cartMap)}
+            cartMap={cartMap}
             isWishlisted={wishlistSet.has(product.id)}
             onAddToCart={onAddToCart}
             onUpdateQuantity={onUpdateQuantity}

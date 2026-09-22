@@ -1,16 +1,18 @@
 import React, { useState, useMemo } from 'react';
 import { Search, Filter, SlidersHorizontal, Sparkles, Check, X, ArrowRight } from 'lucide-react';
-import { Product, Category } from '../types';
+import { Product, ProductVariant, Category } from '../types';
 import { ProductCard } from './ProductCard';
 import { SortDropdown, SortOption } from './SortDropdown';
+import { getProductQuantityInCart } from '../utils/productUtils';
+import { useTheme } from '../providers/ThemeProvider';
 
 interface ShopPageProps {
   products: Product[];
   categories: Category[];
   cartMap: Record<string, number>;
   wishlistSet: Set<string>;
-  onAddToCart: (product: Product) => void;
-  onUpdateQuantity: (product: Product, newQuantity: number) => void;
+  onAddToCart: (product: Product, variant?: ProductVariant) => void;
+  onUpdateQuantity: (product: Product, newQuantity: number, variant?: ProductVariant) => void;
   onToggleWishlist: (product: Product) => void;
   onNotifyMe?: (product: Product) => void;
   onNavigate: (path: string) => void;
@@ -29,6 +31,9 @@ export const ShopPage: React.FC<ShopPageProps> = ({
   onNavigate,
   initialCategory,
 }) => {
+  const { theme } = useTheme();
+  const isAtelier = theme.id === 'atelier';
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategorySlug, setSelectedCategorySlug] = useState<string>(initialCategory || 'all');
   const [freshOnly, setFreshOnly] = useState(false);
@@ -44,9 +49,14 @@ export const ShopPage: React.FC<ShopPageProps> = ({
         if (selectedCategorySlug !== 'all' && product.categorySlug !== selectedCategorySlug) {
           return false;
         }
-        // Fresh Today filter
-        if (freshOnly && !product.isFreshToday) {
-          return false;
+        // Vertical-specific quick toggle
+        if (freshOnly) {
+          if (isAtelier) {
+            const hasNewSeason = product.tags?.some((t) => t.toLowerCase().includes('new') || t.toLowerCase().includes('season'));
+            if (!hasNewSeason) return false;
+          } else {
+            if (!product.isFreshToday) return false;
+          }
         }
         // In Stock filter
         if (inStockOnly && product.stockStatus === 'out_of_stock') {
@@ -56,7 +66,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
         if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase().trim();
           const matchName = product.name.toLowerCase().includes(q);
-          const matchTamil = product.tamilName.includes(q);
+          const matchTamil = product.tamilName ? product.tamilName.includes(q) : false;
           const matchCategory = product.category.toLowerCase().includes(q);
           const matchDesc = product.description.toLowerCase().includes(q);
           if (!matchName && !matchTamil && !matchCategory && !matchDesc) {
@@ -71,7 +81,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
         if (sortBy === 'name-asc') return a.name.localeCompare(b.name);
         return 0; // featured retains original catalog order
       });
-  }, [products, selectedCategorySlug, freshOnly, inStockOnly, searchQuery, sortBy]);
+  }, [products, selectedCategorySlug, freshOnly, inStockOnly, searchQuery, sortBy, isAtelier]);
 
   const activeFilterCount = (freshOnly ? 1 : 0) + (inStockOnly ? 1 : 0) + (selectedCategorySlug !== 'all' ? 1 : 0);
 
@@ -90,36 +100,55 @@ export const ShopPage: React.FC<ShopPageProps> = ({
       id="shop-page"
       className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-10 pt-4 sm:pt-6 md:pt-7 pb-8 sm:pb-10 md:pb-12"
     >
-      {/* 1. BREADCRUMBS & HEADING (Intentional breathing space from location bar: ~16px mobile, ~28px desktop) */}
-      <div className="mb-4 sm:mb-5">
+      {/* 1. BREADCRUMBS & HEADING */}
+      <div className="mb-4 sm:mb-6">
         <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-[#626B69] mb-1.5 sm:mb-2">
           <button
             type="button"
             onClick={() => onNavigate('/')}
-            className="hover:text-[#004B68] transition-colors focus:outline-none"
+            className={`transition-colors focus:outline-none ${
+              isAtelier ? 'hover:text-[#181818] tracking-wider uppercase font-medium text-[11px]' : 'hover:text-[#004B68]'
+            }`}
           >
-            Home
+            {isAtelier ? 'Atelier' : 'Home'}
           </button>
           <span>/</span>
-          <span className="font-semibold text-[#172126]">Shop</span>
+          <span className={`font-semibold ${isAtelier ? 'text-[#181818] tracking-wider uppercase text-[11px]' : 'text-[#172126]'}`}>
+            {isAtelier ? 'Collection' : 'Shop'}
+          </span>
           {currentCategoryObj && (
             <>
               <span>/</span>
-              <span className="text-[#004B68] font-medium">{currentCategoryObj.name}</span>
+              <span className={`font-medium ${isAtelier ? 'text-[#8C7355] tracking-wider uppercase text-[11px]' : 'text-[#004B68]'}`}>
+                {currentCategoryObj.name}
+              </span>
             </>
           )}
         </nav>
 
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 sm:gap-4">
           <div>
-            <span className="inline-block text-[11px] font-bold text-[#53B847] uppercase tracking-wider mb-0.5 sm:mb-1">
-              Complete Fresh Market
+            <span
+              className={`inline-block text-[11px] font-bold uppercase tracking-wider mb-0.5 sm:mb-1 ${
+                isAtelier ? 'text-[#8C7355] tracking-[0.2em] font-medium' : 'text-[#53B847]'
+              }`}
+            >
+              {isAtelier ? "Autumn / Winter '25 Edition" : 'Complete Fresh Market'}
             </span>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#004B68] tracking-tight">
-              Shop All Foods
+            <h1
+              className={`tracking-tight ${
+                isAtelier
+                  ? 'text-3xl sm:text-4xl md:text-5xl font-light text-[#141414] font-serif'
+                  : 'text-2xl sm:text-3xl md:text-4xl font-bold text-[#004B68]'
+              }`}
+              style={isAtelier ? { fontFamily: "'Playfair Display', Georgia, serif" } : undefined}
+            >
+              {isAtelier ? 'All Garments & Objects' : 'Shop All Foods'}
             </h1>
-            <p className="text-xs sm:text-sm text-[#626B69] mt-1 max-w-2xl leading-relaxed">
-              Everyday batters, heirloom millets, fresh sevai, and staples prepared fresh every morning in Coimbatore.
+            <p className={`text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed ${isAtelier ? 'text-[#767676]' : 'text-[#626B69]'}`}>
+              {isAtelier
+                ? 'Curated contemporary silhouettes crafted from certified Belgian linen, Japanese selvedge twill, and Australian fine merino wool.'
+                : 'Everyday batters, heirloom millets, fresh sevai, and staples prepared fresh every morning in Coimbatore.'}
             </p>
           </div>
 
@@ -128,9 +157,11 @@ export const ShopPage: React.FC<ShopPageProps> = ({
             <button
               type="button"
               onClick={() => onNavigate(`/category/${currentCategoryObj.slug}`)}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#004B68] hover:text-[#53B847] transition-colors self-start md:self-auto py-1"
+              className={`inline-flex items-center gap-1.5 text-xs font-semibold self-start md:self-auto py-1 transition-colors ${
+                isAtelier ? 'text-[#181818] hover:text-[#8C7355] uppercase tracking-wider text-[11px]' : 'text-[#004B68] hover:text-[#53B847]'
+              }`}
             >
-              <span>View dedicated {currentCategoryObj.name} page</span>
+              <span>View {currentCategoryObj.name} lookbook</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           )}
@@ -146,8 +177,14 @@ export const ShopPage: React.FC<ShopPageProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search all products (e.g. dosa batter, paneer, ragi, chapathi)..."
-            className="w-full pl-10 sm:pl-11 pr-10 py-2.5 sm:py-3 text-sm bg-white rounded-xl border border-[#E7E7DF] text-[#172126] placeholder-[#626B69] shadow-xs focus:outline-none focus:border-[#53B847] focus:ring-1 focus:ring-[#53B847] transition-all"
+            placeholder={
+              isAtelier
+                ? 'Search collection (e.g. linen overshirt, wool gabardine, trousers)...'
+                : 'Search all products (e.g. dosa batter, paneer, ragi, chapathi)...'
+            }
+            className={`w-full pl-10 sm:pl-11 pr-10 py-2.5 sm:py-3 text-sm bg-white rounded-xl border border-[#E7E7DF] text-[#172126] placeholder-[#626B69] shadow-xs focus:outline-none transition-all ${
+              isAtelier ? 'focus:border-[#141414] focus:ring-1 focus:ring-[#141414]' : 'focus:border-[#53B847] focus:ring-1 focus:ring-[#53B847]'
+            }`}
           />
           {searchQuery && (
             <button
@@ -162,20 +199,22 @@ export const ShopPage: React.FC<ShopPageProps> = ({
         </div>
       </div>
 
-      {/* 3. CATEGORY NAVIGATION (Responsive Horizontal scroll on mobile, wrap on desktop) */}
+      {/* 3. CATEGORY NAVIGATION */}
       <div className="mb-4 sm:mb-5">
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none sm:flex-wrap">
           {/* All Button */}
           <button
             type="button"
             onClick={() => setSelectedCategorySlug('all')}
-            className={`shrink-0 px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-150 min-h-[40px] flex items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#53B847] ${
+            className={`shrink-0 px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-150 min-h-[40px] flex items-center gap-1.5 focus:outline-none ${
               selectedCategorySlug === 'all'
-                ? 'bg-[#004B68] text-white shadow-xs'
-                : 'bg-white text-[#626B69] hover:text-[#172126] border border-[#E7E7DF] hover:border-[#37B4A1]'
+                ? isAtelier
+                  ? 'bg-[#181818] text-white shadow-xs'
+                  : 'bg-[#004B68] text-white shadow-xs'
+                : 'bg-white text-[#626B69] hover:text-[#172126] border border-[#E7E7DF] hover:border-[#141414]'
             }`}
           >
-            <span>All Items</span>
+            <span>{isAtelier ? 'All Pieces' : 'All Items'}</span>
             <span
               className={`text-[10px] px-1.5 py-0.2 rounded-full ${
                 selectedCategorySlug === 'all' ? 'bg-white/20 text-white' : 'bg-[#F2F3ED] text-[#626B69]'
@@ -196,10 +235,12 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                 id={`shop-cat-${cat.slug}`}
                 type="button"
                 onClick={() => setSelectedCategorySlug(isSelected ? 'all' : cat.slug)}
-                className={`shrink-0 px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-150 min-h-[40px] flex items-center gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#53B847] ${
+                className={`shrink-0 px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-150 min-h-[40px] flex items-center gap-1.5 focus:outline-none ${
                   isSelected
-                    ? 'bg-[#004B68] text-white shadow-xs'
-                    : 'bg-white text-[#626B69] hover:text-[#172126] border border-[#E7E7DF] hover:border-[#37B4A1]'
+                    ? isAtelier
+                      ? 'bg-[#181818] text-white shadow-xs'
+                      : 'bg-[#004B68] text-white shadow-xs'
+                    : 'bg-white text-[#626B69] hover:text-[#172126] border border-[#E7E7DF] hover:border-[#141414]'
                 }`}
               >
                 <span>{cat.name}</span>
@@ -216,22 +257,28 @@ export const ShopPage: React.FC<ShopPageProps> = ({
         </div>
       </div>
 
-      {/* 4. FILTER & SORT CONTROLS BAR (Intentional responsive composition: 2 clean rows on mobile, 1 row on desktop) */}
+      {/* 4. FILTER & SORT CONTROLS BAR */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 sm:p-4 bg-white rounded-2xl border border-[#E7E7DF] mb-5 sm:mb-6 shadow-xs">
         {/* Row 1 on mobile / Left group on desktop: Quick Filter Toggles */}
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Fresh Today Toggle */}
+          {/* Quick Season / Fresh Toggle */}
           <button
             type="button"
             onClick={() => setFreshOnly(!freshOnly)}
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors focus:outline-none min-h-[36px] sm:min-h-0 ${
               freshOnly
-                ? 'bg-[#53B847] text-white'
+                ? isAtelier
+                  ? 'bg-[#181818] text-white'
+                  : 'bg-[#53B847] text-white'
                 : 'bg-[#F2F3ED] text-[#626B69] hover:text-[#172126] hover:bg-[#E7E7DF]'
             }`}
           >
-            <span className={`w-1.5 h-1.5 rounded-full ${freshOnly ? 'bg-white' : 'bg-[#53B847]'}`} />
-            <span className="whitespace-nowrap">Fresh Today</span>
+            <span
+              className={`w-1.5 h-1.5 rounded-full ${
+                freshOnly ? 'bg-white' : isAtelier ? 'bg-[#8C7355]' : 'bg-[#53B847]'
+              }`}
+            />
+            <span className="whitespace-nowrap">{isAtelier ? 'New Season' : 'Fresh Today'}</span>
           </button>
 
           {/* In Stock Toggle */}
@@ -240,7 +287,9 @@ export const ShopPage: React.FC<ShopPageProps> = ({
             onClick={() => setInStockOnly(!inStockOnly)}
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors focus:outline-none min-h-[36px] sm:min-h-0 ${
               inStockOnly
-                ? 'bg-[#004B68] text-white'
+                ? isAtelier
+                  ? 'bg-[#181818] text-white'
+                  : 'bg-[#004B68] text-white'
                 : 'bg-[#F2F3ED] text-[#626B69] hover:text-[#172126] hover:bg-[#E7E7DF]'
             }`}
           >
@@ -284,18 +333,27 @@ export const ShopPage: React.FC<ShopPageProps> = ({
           <button
             type="button"
             onClick={clearAllFilters}
-            className="mt-4 px-4 py-2 text-xs font-semibold bg-[#53B847] text-white rounded-xl hover:bg-[#469e3c] transition-colors focus:outline-none"
+            className={`mt-4 px-4 py-2 text-xs font-semibold text-white rounded-xl transition-colors focus:outline-none ${
+              isAtelier ? 'bg-[#181818] hover:bg-black' : 'bg-[#53B847] hover:bg-[#469e3c]'
+            }`}
           >
             Clear all filters
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 md:gap-5">
+        <div
+          className={
+            isAtelier
+              ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-5 gap-y-10 sm:gap-x-7 sm:gap-y-12'
+              : 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 md:gap-5'
+          }
+        >
           {filteredProducts.map((product) => (
             <ProductCard
               key={product.id}
               product={product}
-              quantityInCart={cartMap[product.id] || 0}
+              quantityInCart={getProductQuantityInCart(product, cartMap)}
+              cartMap={cartMap}
               isWishlisted={wishlistSet.has(product.id)}
               onAddToCart={onAddToCart}
               onUpdateQuantity={onUpdateQuantity}

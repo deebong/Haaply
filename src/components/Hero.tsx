@@ -33,12 +33,12 @@ export const Hero: React.FC<HeroProps> = ({
             Fresh batters, millet foods and everyday favourites, prepared for your home.
           </p>
 
-          <div className="mt-6 sm:mt-8 flex flex-col xs:flex-row items-stretch xs:items-center gap-3 sm:gap-5 w-full xs:w-auto">
+          <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-5 w-full sm:w-auto">
             <button
               id="hero-primary-cta"
               type="button"
               onClick={onExploreClick}
-              className="inline-flex items-center justify-center px-6 sm:px-7 py-3 sm:py-3.5 bg-[#53B847] hover:bg-[#469e3c] text-white text-[14px] sm:text-[15px] font-semibold rounded-xl shadow-sm transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#004B68] focus-visible:ring-offset-2 min-h-[44px]"
+              className="inline-flex items-center justify-center px-6 sm:px-7 py-3 sm:py-3.5 bg-[#53B847] hover:bg-[#469e3c] text-white text-[14px] sm:text-[15px] font-semibold rounded-xl shadow-sm transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#004B68] focus-visible:ring-offset-2 min-h-[44px] whitespace-nowrap"
             >
               Explore fresh picks
             </button>
@@ -47,7 +47,7 @@ export const Hero: React.FC<HeroProps> = ({
               id="hero-secondary-link"
               type="button"
               onClick={onBrowseAllClick}
-              className="group inline-flex items-center justify-center xs:justify-start gap-1.5 text-[14px] sm:text-[15px] font-semibold text-[#004B68] hover:text-[#53B847] transition-colors py-2 focus:outline-none focus-visible:underline min-h-[44px]"
+              className="group inline-flex items-center justify-center sm:justify-start gap-1.5 text-[14px] sm:text-[15px] font-semibold text-[#004B68] hover:text-[#53B847] transition-colors py-2 focus:outline-none focus-visible:underline min-h-[44px] whitespace-nowrap"
             >
               <span>Browse everything</span>
               <ArrowRight className="w-4 h-4 transition-transform duration-150 group-hover:translate-x-1 text-[#53B847]" />

@@ -1,13 +1,14 @@
 import React from 'react';
 import { X, ShoppingBag, Plus, Minus, ArrowRight, Trash2 } from 'lucide-react';
-import { CartItem, Product } from '../types';
+import { CartItem, Product, ProductVariant } from '../types';
 import { useScrollLock } from '../hooks/useScrollLock';
+import { useTheme } from '../providers/ThemeProvider';
 
 interface CartDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   cartItems: CartItem[];
-  onUpdateQuantity: (product: Product, newQuantity: number) => void;
+  onUpdateQuantity: (product: Product, newQuantity: number, variant?: ProductVariant) => void;
   onCheckout: () => void;
   onViewCart?: () => void;
 }
@@ -20,18 +21,24 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onCheckout,
   onViewCart,
 }) => {
+  const { theme } = useTheme();
+  const isAtelier = theme.id === 'atelier';
   // Centralized scroll-lock: locks document scroll, handles mobile touch, and supports Escape key
   useScrollLock(isOpen, onClose);
 
   if (!isOpen) return null;
 
+  const isBag = theme.capabilities?.cartLabel === 'Bag' || isAtelier;
+  const cartTitle = isBag ? 'Your Shopping Bag' : 'Your Fresh Basket';
+
   const subtotal = cartItems.reduce(
-    (sum, item) => sum + item.product.price * item.quantity,
+    (sum, item) => sum + (item.variant?.price ?? item.product.price) * item.quantity,
     0
   );
-  const deliveryFee = subtotal >= 199 || subtotal === 0 ? 0 : 25;
+
+  const freeDeliveryThreshold = isAtelier ? 3000 : 199;
+  const deliveryFee = subtotal >= freeDeliveryThreshold || subtotal === 0 ? 0 : (isAtelier ? 150 : 25);
   const grandTotal = subtotal + deliveryFee;
-  const freeDeliveryThreshold = 199;
   const amountNeededForFreeDelivery = Math.max(0, freeDeliveryThreshold - subtotal);
 
   return (
@@ -39,7 +46,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       className="fixed inset-0 z-50 overflow-hidden"
       role="dialog"
       aria-modal="true"
-      aria-label="Your Fresh Basket"
+      aria-label={cartTitle}
     >
       {/* Backdrop with touch-none to prevent touch-drag bleeding */}
       <div
@@ -53,12 +60,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           {/* Header */}
           <div className="px-4 py-4 sm:px-6 sm:py-5 border-b border-[#E7E7DF] flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <ShoppingBag className="w-5 h-5 text-[#53B847]" />
-              <h3 className="text-base sm:text-lg font-bold text-[#004B68]">
-                Your Fresh Basket
+              <ShoppingBag className={`w-5 h-5 ${isAtelier ? 'text-[#181818]' : 'text-[var(--color-primary)]'}`} />
+              <h3 className={`text-base sm:text-lg font-bold ${isAtelier ? 'text-[#141414] font-serif tracking-tight' : 'text-[#172126]'}`}>
+                {cartTitle}
               </h3>
               <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#F2F3ED] text-[#626B69]">
-                {cartItems.reduce((acc, item) => acc + item.quantity, 0)} items
+                {cartItems.reduce((acc, item) => acc + item.quantity, 0)} {isAtelier ? 'pieces' : 'items'}
               </span>
             </div>
             <button
@@ -74,17 +81,17 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           {/* Delivery progress banner */}
           <div className="px-4 py-2.5 sm:px-6 bg-[#FAFAF6] border-b border-[#E7E7DF]/70 text-xs">
             {amountNeededForFreeDelivery === 0 ? (
-              <p className="text-[#53B847] font-semibold flex items-center gap-1.5">
-                <span>✓</span> You qualify for Free Fresh Delivery!
+              <p className={`font-semibold flex items-center gap-1.5 ${isAtelier ? 'text-[#181818]' : 'text-[#53B847]'}`}>
+                <span>✓</span> {isAtelier ? 'You qualify for Complimentary Express Delivery!' : 'You qualify for Free Fresh Delivery!'}
               </p>
             ) : (
               <p className="text-[#626B69]">
-                Add <strong className="text-[#004B68]">₹{amountNeededForFreeDelivery}</strong> more for free delivery
+                Add <strong className={isAtelier ? 'text-[#181818]' : 'text-[#004B68]'}>₹{amountNeededForFreeDelivery}</strong> more for {isAtelier ? 'complimentary delivery' : 'free delivery'}
               </p>
             )}
             <div className="w-full h-1.5 bg-[#E7E7DF] rounded-full mt-1.5 overflow-hidden">
               <div
-                className="h-full bg-[#53B847] transition-all duration-300"
+                className={`h-full transition-all duration-300 ${isAtelier ? 'bg-[#181818]' : 'bg-[#53B847]'}`}
                 style={{
                   width: `${Math.min(100, (subtotal / freeDeliveryThreshold) * 100)}%`,
                 }}
@@ -100,76 +107,102 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             {cartItems.length === 0 ? (
               <div className="text-center py-12 sm:py-16">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[#F2F3ED] flex items-center justify-center text-[#626B69]">
-                  <ShoppingBag className="w-8 h-8" />
+                  <ShoppingBag className="w-8 h-8 stroke-[1.5]" />
                 </div>
-                <h4 className="text-base font-bold text-[#172126]">
-                  Your basket is empty
+                <h4 className={`text-base font-bold ${isAtelier ? 'text-[#141414] font-serif' : 'text-[#172126]'}`}>
+                  {isAtelier ? 'Your bag is empty' : 'Your basket is empty'}
                 </h4>
                 <p className="text-xs text-[#626B69] mt-1 max-w-xs mx-auto">
-                  Add some freshly ground batters, wholesome millets, or fresh paneer to get started.
+                  {isAtelier
+                    ? 'Explore contemporary tailored silhouettes, fine-knit layers, and luxury natural fabrics.'
+                    : 'Add some freshly ground batters, wholesome millets, or fresh paneer to get started.'}
                 </p>
                 <button
                   type="button"
                   onClick={onClose}
-                  className="mt-5 px-5 py-2 text-xs font-semibold text-[#53B847] bg-[#53B847]/10 hover:bg-[#53B847]/20 rounded-lg transition-colors"
+                  className={`mt-5 px-5 py-2 text-xs font-semibold rounded-lg transition-colors ${
+                    isAtelier
+                      ? 'bg-[#181818] text-white hover:bg-black'
+                      : 'text-[#53B847] bg-[#53B847]/10 hover:bg-[#53B847]/20'
+                  }`}
                 >
-                  Explore Today's Fresh Picks
+                  {isAtelier ? 'Explore Collection' : "Explore Today's Fresh Picks"}
                 </button>
               </div>
             ) : (
-              cartItems.map(({ product, quantity }) => (
-                <div
-                  key={product.id}
-                  className="flex items-center gap-3 sm:gap-3.5 p-2.5 sm:p-3 rounded-xl border border-[#E7E7DF] bg-[#FAFAF6]/50"
-                >
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg object-cover bg-white shrink-0 border border-[#E7E7DF]"
-                  />
+              cartItems.map((item) => {
+                const { product, quantity, variant } = item;
+                const unitPrice = variant?.price ?? product.price;
+                const lineTotal = unitPrice * quantity;
+                const packDisplay = variant?.options
+                  ? Object.entries(variant.options).map(([k, v]) => `${k}: ${v}`).join(' • ')
+                  : (variant?.packSize || variant?.label || product.packSize);
+                const stockLimit = variant?.stockCount ?? product.stockCount;
+                const isMaxStock = stockLimit !== undefined && quantity >= stockLimit;
+                const itemKey = variant ? `${product.id}:${variant.id}` : product.id;
 
-                  <div className="flex-1 min-w-0">
-                    <h5 className="text-sm font-semibold text-[#172126] truncate">
-                      {product.name}
-                    </h5>
-                    <p className="tamil-text text-xs text-[#626B69]">
-                      {product.tamilName} • {product.packSize}
-                    </p>
-                    <div className="text-sm font-bold text-[#172126] mt-1">
-                      ₹{product.price * quantity}
+                return (
+                  <div
+                    key={itemKey}
+                    className="flex items-center gap-3 sm:gap-3.5 p-2.5 sm:p-3 rounded-xl border border-[#E7E7DF] bg-[#FAFAF6]/50"
+                  >
+                    <img
+                      src={variant?.image || product.image}
+                      alt={product.name}
+                      className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg object-cover bg-white shrink-0 border border-[#E7E7DF]"
+                    />
+
+                    <div className="flex-1 min-w-0">
+                      <h5 className="text-sm font-semibold text-[#172126] truncate">
+                        {product.name}
+                      </h5>
+                      <p className="text-xs text-[#626B69]">
+                        {product.tamilName ? `${product.tamilName} • ` : ''}
+                        <span className={isAtelier ? 'text-[#8C7355] font-medium' : 'text-[var(--color-accent)] font-medium'}>
+                          {packDisplay}
+                        </span>
+                      </p>
+                      <div className="text-sm font-bold text-[#172126] mt-1">
+                        ₹{lineTotal}
+                        {quantity > 1 && (
+                          <span className="text-xs font-normal text-[#626B69] ml-1">
+                            (₹{unitPrice} each)
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Quantity adjustment */}
+                    <div className="flex items-center gap-1 bg-white border border-[#E7E7DF] rounded-lg p-0.5">
+                      <button
+                        type="button"
+                        onClick={() => onUpdateQuantity(product, quantity - 1, variant)}
+                        className="w-7 h-7 sm:w-6 sm:h-6 flex items-center justify-center text-[#626B69] hover:text-[#172126] transition-colors"
+                        aria-label={`Decrease quantity of ${product.name} ${packDisplay}`}
+                      >
+                        {quantity === 1 ? (
+                          <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                        ) : (
+                          <Minus className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                      <span className="w-6 text-center text-xs font-bold text-[#172126]">
+                        {quantity}
+                      </span>
+                      <button
+                        type="button"
+                        disabled={isMaxStock}
+                        onClick={() => onUpdateQuantity(product, quantity + 1, variant)}
+                        className="w-7 h-7 sm:w-6 sm:h-6 flex items-center justify-center text-[#626B69] hover:text-[#172126] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        aria-label={`Increase quantity of ${product.name} ${packDisplay}`}
+                        title={isMaxStock ? `Only ${stockLimit} in stock` : 'Increase quantity'}
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
-
-                  {/* Quantity adjustment */}
-                  <div className="flex items-center gap-1 bg-white border border-[#E7E7DF] rounded-lg p-0.5">
-                    <button
-                      type="button"
-                      onClick={() => onUpdateQuantity(product, quantity - 1)}
-                      className="w-7 h-7 sm:w-6 sm:h-6 flex items-center justify-center text-[#626B69] hover:text-[#172126] transition-colors"
-                      aria-label="Decrease quantity"
-                    >
-                      {quantity === 1 ? (
-                        <Trash2 className="w-3.5 h-3.5 text-red-500" />
-                      ) : (
-                        <Minus className="w-3.5 h-3.5" />
-                      )}
-                    </button>
-                    <span className="w-6 text-center text-xs font-bold text-[#172126]">
-                      {quantity}
-                    </span>
-                    <button
-                      type="button"
-                      disabled={product.stockCount !== undefined && quantity >= product.stockCount}
-                      onClick={() => onUpdateQuantity(product, quantity + 1)}
-                      className="w-7 h-7 sm:w-6 sm:h-6 flex items-center justify-center text-[#626B69] hover:text-[#172126] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                      aria-label="Increase quantity"
-                      title={product.stockCount !== undefined && quantity >= product.stockCount ? `Only ${product.stockCount} in stock` : 'Increase quantity'}
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
 
@@ -178,20 +211,20 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             <div className="p-4 sm:p-6 border-t border-[#E7E7DF] bg-[#FAFAF6] space-y-3">
               <div className="space-y-1.5 text-xs text-[#626B69]">
                 <div className="flex justify-between">
-                  <span>Item Subtotal</span>
+                  <span>Subtotal</span>
                   <span className="font-semibold text-[#172126]">₹{subtotal}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Fresh Delivery</span>
+                  <span>{isAtelier ? 'Express Delivery' : 'Fresh Delivery'}</span>
                   <span className="font-semibold text-[#172126]">
                     {deliveryFee === 0 ? (
-                      <span className="text-[#53B847]">FREE</span>
+                      <span className={isAtelier ? 'text-[#181818] font-bold' : 'text-[#53B847]'}>FREE</span>
                     ) : (
                       `₹${deliveryFee}`
                     )}
                   </span>
                 </div>
-                <div className="flex justify-between text-sm font-bold text-[#004B68] pt-2 border-t border-[#E7E7DF]">
+                <div className={`flex justify-between text-sm font-bold pt-2 border-t border-[#E7E7DF] ${isAtelier ? 'text-[#141414]' : 'text-[#004B68]'}`}>
                   <span>Total Amount</span>
                   <span>₹{grandTotal}</span>
                 </div>
@@ -200,9 +233,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               <button
                 type="button"
                 onClick={onCheckout}
-                className="w-full py-3.5 bg-[#53B847] hover:bg-[#469e3c] text-white text-sm font-bold rounded-xl transition-colors flex items-center justify-center gap-2 shadow-xs cursor-pointer min-h-[44px]"
+                className={`w-full py-3.5 text-white text-sm font-bold rounded-xl transition-colors flex items-center justify-center gap-2 shadow-xs cursor-pointer min-h-[44px] ${
+                  isAtelier ? 'bg-[#181818] hover:bg-black tracking-wider uppercase text-xs' : 'bg-[#53B847] hover:bg-[#469e3c]'
+                }`}
               >
-                <span>Proceed to Delivery Slot</span>
+                <span>{isAtelier ? 'Proceed to Checkout' : 'Proceed to Delivery Slot'}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
 
@@ -214,9 +249,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     onClose();
                     onViewCart();
                   }}
-                  className="w-full py-2.5 bg-white hover:bg-[#F2F3ED] text-[#004B68] border border-[#E7E7DF] text-xs font-bold rounded-xl transition-colors flex items-center justify-center gap-1.5 min-h-[40px] cursor-pointer"
+                  className={`w-full py-2.5 bg-white hover:bg-[#F2F3ED] border border-[#E7E7DF] text-xs font-bold rounded-xl transition-colors flex items-center justify-center gap-1.5 min-h-[40px] cursor-pointer ${
+                    isAtelier ? 'text-[#181818] hover:border-[#181818]' : 'text-[#004B68]'
+                  }`}
                 >
-                  <span>View Full Basket</span>
+                  <span>{isAtelier ? 'Review Bag' : 'View Full Basket'}</span>
                 </button>
               )}
             </div>

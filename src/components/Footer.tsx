@@ -1,11 +1,13 @@
 import React from 'react';
 import { HaaplyLogo } from './HaaplyLogo';
+import { useConfig } from '../providers/ConfigProvider';
 
 interface FooterProps {
   onLinkClick?: (slug: string) => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({ onLinkClick }) => {
+  const { site, isFeatureEnabled } = useConfig();
   const handleClick = (slug: string) => (e: React.MouseEvent) => {
     e.preventDefault();
     if (onLinkClick) onLinkClick(slug);
@@ -22,7 +24,7 @@ export const Footer: React.FC<FooterProps> = ({ onLinkClick }) => {
           <div className="sm:col-span-2 md:col-span-2">
             <HaaplyLogo width={125} />
             <p className="mt-3 text-[14px] text-[#626B69] max-w-sm leading-relaxed">
-              Fresh food for your home. Stone-ground batters, heritage millets and wholesome ready-to-cook staples prepared fresh every morning in Coimbatore.
+              {site.description || "Fresh food for your home. Stone-ground batters, heritage millets and wholesome ready-to-cook staples prepared fresh every morning in Coimbatore."}
             </p>
             <div className="mt-4 flex items-center gap-2 text-xs text-[#626B69]">
               <span className="w-2 h-2 rounded-full bg-[#53B847]" />
@@ -159,7 +161,7 @@ export const Footer: React.FC<FooterProps> = ({ onLinkClick }) => {
 
         {/* BOTTOM COPYRIGHT ROW */}
         <div className="mt-8 sm:mt-10 pt-6 border-t border-[#E7E7DF] flex flex-col sm:flex-row items-center justify-between text-xs text-[#626B69] gap-3 text-center sm:text-left">
-          <p>© 2026 Annaí Foods. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} {site.legalBusinessName || 'Annaí Foods'}. All rights reserved.</p>
           <p>Handcrafted with care for healthy South Indian households.</p>
         </div>
       </div>

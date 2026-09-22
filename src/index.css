@@ -2,21 +2,51 @@
 
 @layer base {
   :root {
-    --haaply-green: #53B847;
-    --haaply-teal: #37B4A1;
-    --haaply-deep-blue: #004B68;
-    --haaply-bg: #FAFAF6;
-    --haaply-surface: #FFFFFF;
-    --haaply-text: #172126;
-    --haaply-text-secondary: #626B69;
-    --haaply-border: #E7E7DF;
-    --haaply-muted-surface: #F2F3ED;
+    /* Centralized Theme Tokens (Defaults match Haaply Fresh) */
+    --color-primary: #53B847;
+    --color-primary-hover: #469e3c;
+    --color-secondary: #37B4A1;
+    --color-secondary-hover: #2ea190;
+    --color-accent: #004B68;
+    --color-accent-hover: #00384e;
+    --color-bg: #FAFAF6;
+    --color-surface: #FFFFFF;
+    --color-surface-alt: #F2F3ED;
+    --color-text: #172126;
+    --color-text-muted: #626B69;
+    --color-border: #E7E7DF;
+    --color-border-strong: #D4D4CA;
+    --color-success: #53B847;
+    --color-warning: #F59E0B;
+    --color-danger: #EF4444;
+
+    /* Shape & Elevation Tokens */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 22px;
+    --radius-button: 12px;
+    --radius-card: 16px;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.04);
+    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.08);
+
+    /* Backwards compatibility tokens for existing Haaply code */
+    --haaply-green: var(--color-primary);
+    --haaply-teal: var(--color-secondary);
+    --haaply-deep-blue: var(--color-accent);
+    --haaply-bg: var(--color-bg);
+    --haaply-surface: var(--color-surface);
+    --haaply-text: var(--color-text);
+    --haaply-text-secondary: var(--color-text-muted);
+    --haaply-border: var(--color-border);
+    --haaply-muted-surface: var(--color-surface-alt);
   }
 
   body {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background-color: #FAFAF6;
-    color: #172126;
+    font-family: var(--font-body, 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+    background-color: var(--color-bg, #FAFAF6);
+    color: var(--color-text, #172126);
     -webkit-font-smoothing: antialiased;
   }
 

@@ -1,7 +1,15 @@
-import React, { useMemo } from 'react';
-import { ArrowLeft, Heart, ShoppingBag, Plus, Minus, Bell, Check, Clock, ShieldCheck, Sparkles } from 'lucide-react';
-import { Product, Category } from '../types';
+import React, { useMemo, useState, useEffect } from 'react';
+import { ArrowLeft, Heart, ShoppingBag, Plus, Minus, Bell, Clock, ShieldCheck } from 'lucide-react';
+import { Product, ProductVariant, Category } from '../types';
 import { ProductCard } from './ProductCard';
+import {
+  hasMultipleVariants,
+  getDefaultVariant,
+  getVariantQuantityInCart,
+  getProductQuantityInCart,
+} from '../utils/productUtils';
+import { useTheme } from '../providers/ThemeProvider';
+import { AtelierProductDetailPage } from '../themes/fashion/AtelierProductDetailPage';
 
 interface ProductDetailPageProps {
   productId: string;
@@ -9,8 +17,8 @@ interface ProductDetailPageProps {
   categories: Category[];
   cartMap: Record<string, number>;
   wishlistSet: Set<string>;
-  onAddToCart: (product: Product) => void;
-  onUpdateQuantity: (product: Product, newQuantity: number) => void;
+  onAddToCart: (product: Product, variant?: ProductVariant) => void;
+  onUpdateQuantity: (product: Product, newQuantity: number, variant?: ProductVariant) => void;
   onToggleWishlist: (product: Product) => void;
   onNotifyMe?: (product: Product) => void;
   onNavigate: (path: string) => void;
@@ -28,9 +36,42 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   onNotifyMe,
   onNavigate,
 }) => {
+  const { theme } = useTheme();
+
   const product = useMemo(() => {
     return products.find((p) => p.id === productId);
   }, [products, productId]);
+
+  // If active theme uses editorial fashion PDP, render AtelierProductDetailPage
+  if (product && (theme.id === 'atelier' || theme.capabilities?.pdpStyle === 'editorial-gallery')) {
+    return (
+      <AtelierProductDetailPage
+        product={product}
+        onBack={() => onNavigate('/shop')}
+        onAddToCart={(prod, v, qty = 1) => {
+          for (let i = 0; i < qty; i++) {
+            onAddToCart(prod, v);
+          }
+        }}
+        onProductClick={(pId) => onNavigate(`/product/${pId}`)}
+        onToggleWishlist={(pId) => {
+          const found = products.find((p) => p.id === pId);
+          if (found) onToggleWishlist(found);
+        }}
+        isWishlisted={wishlistSet.has(product.id)}
+        allProducts={products}
+      />
+    );
+  }
+
+  const [selectedVariantId, setSelectedVariantId] = useState<string>('');
+
+  useEffect(() => {
+    if (product) {
+      const defaultVariant = getDefaultVariant(product);
+      setSelectedVariantId(defaultVariant.id);
+    }
+  }, [product]);
 
   const category = useMemo(() => {
     return categories.find((c) => c.slug === product?.categorySlug);
@@ -62,11 +103,28 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
     );
   }
 
-  const quantityInCart = cartMap[product.id] || 0;
+  const currentVariant: ProductVariant = useMemo(() => {
+    if (product.variants && product.variants.length > 0) {
+      const found = product.variants.find((v) => v.id === selectedVariantId);
+      if (found) return found;
+      return getDefaultVariant(product);
+    }
+    return getDefaultVariant(product);
+  }, [product, selectedVariantId]);
+
+  const isMultiVariant = hasMultipleVariants(product);
+  const quantityInCart = getVariantQuantityInCart(
+    cartMap,
+    product.id,
+    currentVariant.id,
+    currentVariant.isDefault
+  );
   const isWishlisted = wishlistSet.has(product.id);
-  const isOutOfStock = product.stockStatus === 'out_of_stock';
-  const isLowStock = product.stockStatus === 'low_stock';
-  const isMaxStockReached = product.stockCount !== undefined && quantityInCart >= product.stockCount;
+  const effectiveStockStatus = currentVariant.stockStatus || product.stockStatus;
+  const effectiveStockCount = currentVariant.stockCount ?? product.stockCount;
+  const isOutOfStock = effectiveStockStatus === 'out_of_stock';
+  const isLowStock = effectiveStockStatus === 'low_stock';
+  const isMaxStockReached = effectiveStockCount !== undefined && quantityInCart >= effectiveStockCount;
   const categoryDisplayName = category?.name || product.category;
 
   return (
@@ -165,7 +223,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                 </button>
                 {isLowStock && !isOutOfStock && (
                   <span id="pdp-low-stock-badge" className="text-[10px] font-semibold text-[#c05621] bg-[#feebc8]/80 px-2 py-0.5 rounded">
-                    Only {product.stockCount || 4} units left
+                    Only {effectiveStockCount || 4} units left
                   </span>
                 )}
               </div>
@@ -180,7 +238,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
               {/* Pack Size & Preparation Time */}
               <div className="flex items-center gap-4 mt-3 text-xs sm:text-sm text-[#626B69]">
-                <span>Pack: <strong className="text-[#172126]">{product.packSize}</strong></span>
+                <span>
+                  Selected Pack: <strong className="text-[#172126]">{currentVariant.packSize || currentVariant.label}</strong>
+                </span>
                 {product.prepTime && (
                   <div className="flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5 text-[#53B847]" />
@@ -192,15 +252,59 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               {/* Price Row */}
               <div className="flex items-baseline flex-wrap gap-x-3 gap-y-1 mt-4 pt-4 border-t border-[#E7E7DF]">
                 <span id="pdp-price" className="text-2xl sm:text-3xl font-bold text-[#004B68]">
-                  ₹{product.price}
+                  ₹{currentVariant.price}
                 </span>
-                {product.originalPrice && product.originalPrice > product.price && (
+                {currentVariant.originalPrice && currentVariant.originalPrice > currentVariant.price && (
                   <span className="text-base text-[#626B69] line-through">
-                    ₹{product.originalPrice}
+                    ₹{currentVariant.originalPrice}
                   </span>
                 )}
                 <span className="text-xs text-[#626B69] whitespace-nowrap">Inclusive of all taxes</span>
               </div>
+
+              {/* VARIANT SELECTION: Rendered cleanly for products with multiple variants */}
+              {isMultiVariant && product.variants && (
+                <div id="pdp-variant-selector" className="mt-4 pt-4 border-t border-[#E7E7DF]">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-bold text-[#172126] uppercase tracking-wider">
+                      Select Size: <span className="text-[#004B68] font-semibold normal-case">{currentVariant.label}</span>
+                    </label>
+                  </div>
+                  <div className="flex flex-wrap gap-2.5">
+                    {product.variants.map((variant) => {
+                      const isSelected = variant.id === currentVariant.id;
+                      const isVariantOutOfStock = variant.stockStatus === 'out_of_stock';
+                      const variantQty = getVariantQuantityInCart(cartMap, product.id, variant.id, variant.isDefault);
+
+                      return (
+                        <button
+                          key={variant.id}
+                          id={`variant-btn-${variant.id}`}
+                          type="button"
+                          onClick={() => setSelectedVariantId(variant.id)}
+                          disabled={isVariantOutOfStock}
+                          className={`relative px-4 py-2.5 rounded-xl text-xs font-semibold border transition-all flex items-center gap-2 focus:outline-none ${
+                            isSelected
+                              ? 'bg-[#004B68] text-white border-[#004B68] shadow-xs ring-2 ring-[#004B68]/20'
+                              : isVariantOutOfStock
+                              ? 'bg-[#F2F3ED] text-[#626B69]/50 border-[#E7E7DF] line-through cursor-not-allowed'
+                              : 'bg-white text-[#172126] border-[#E7E7DF] hover:border-[#37B4A1] hover:text-[#004B68]'
+                          }`}
+                        >
+                          <span className="font-bold">{variant.label}</span>
+                          {variantQty > 0 && (
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${
+                              isSelected ? 'bg-white/20 text-white' : 'bg-[#53B847]/15 text-[#53B847]'
+                            }`}>
+                              {variantQty}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Description */}
               <p id="pdp-description" className="text-sm text-[#172126]/80 mt-4 leading-relaxed">
@@ -246,9 +350,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                     <button
                       id="pdp-cart-decrease-btn"
                       type="button"
-                      onClick={() => onUpdateQuantity(product, quantityInCart - 1)}
+                      onClick={() => onUpdateQuantity(product, quantityInCart - 1, currentVariant)}
                       className="w-11 h-full flex items-center justify-center hover:bg-[#469e3c] transition-colors focus:outline-none"
-                      aria-label="Decrease quantity"
+                      aria-label={`Decrease quantity of ${product.name} ${currentVariant.label}`}
                     >
                       <Minus className="w-4 h-4 stroke-[2.5]" />
                     </button>
@@ -259,14 +363,14 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                       id="pdp-cart-increase-btn"
                       type="button"
                       disabled={isMaxStockReached}
-                      onClick={() => onUpdateQuantity(product, quantityInCart + 1)}
+                      onClick={() => onUpdateQuantity(product, quantityInCart + 1, currentVariant)}
                       className={`w-11 h-full flex items-center justify-center transition-colors focus:outline-none ${
                         isMaxStockReached
                           ? 'opacity-40 cursor-not-allowed bg-[#469e3c]/50'
                           : 'hover:bg-[#469e3c]'
                       }`}
-                      aria-label="Increase quantity"
-                      title={isMaxStockReached ? `Maximum available stock (${product.stockCount}) reached` : 'Increase quantity'}
+                      aria-label={`Increase quantity of ${product.name} ${currentVariant.label}`}
+                      title={isMaxStockReached ? `Maximum available stock (${effectiveStockCount}) reached` : 'Increase quantity'}
                     >
                       <Plus className="w-4 h-4 stroke-[2.5]" />
                     </button>
@@ -275,11 +379,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                   <button
                     id="pdp-add-to-cart-btn"
                     type="button"
-                    onClick={() => onAddToCart(product)}
+                    onClick={() => onAddToCart(product, currentVariant)}
                     className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#53B847] hover:bg-[#469e3c] text-white font-bold text-sm rounded-xl shadow-xs transition-colors h-[44px]"
                   >
                     <ShoppingBag className="w-4 h-4" />
-                    <span>Add to Basket</span>
+                    <span>Add {currentVariant.label} to Basket</span>
                   </button>
                 )}
 
@@ -303,7 +407,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               {isMaxStockReached && (
                 <div id="pdp-stock-limit-feedback" className="mt-2.5 flex items-center gap-1.5 text-xs text-[#c05621] font-medium" aria-live="polite">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#c05621] shrink-0" />
-                  <span>Maximum stock reached ({product.stockCount} units)</span>
+                  <span>Maximum stock reached for {currentVariant.label} ({effectiveStockCount} units)</span>
                 </div>
               )}
             </div>
@@ -333,7 +437,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               <ProductCard
                 key={p.id}
                 product={p}
-                quantityInCart={cartMap[p.id] || 0}
+                quantityInCart={getProductQuantityInCart(p, cartMap)}
+                cartMap={cartMap}
                 isWishlisted={wishlistSet.has(p.id)}
                 onAddToCart={onAddToCart}
                 onUpdateQuantity={onUpdateQuantity}
