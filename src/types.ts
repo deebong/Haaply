@@ -40,11 +40,27 @@ export interface FashionProductAttributes {
 }
 
 /**
+ * Beauty & Artisan Skincare Vertical Attributes
+ */
+export interface BeautyProductAttributes {
+  skinType?: string[]; // e.g. ['Sensitive', 'Dry', 'All Skin Types']
+  benefits?: string[]; // e.g. ['Deep Hydration', 'Gentle Cleanse', 'Barrier Support']
+  ingredients?: string[]; // e.g. ['Goat Milk', 'Cold-pressed Coconut Oil', 'Raw Shea Butter']
+  fragrance?: string; // e.g. 'Unscented', 'Calming Floral', 'Warm Citrus'
+  soapType?: string; // e.g. 'Cold Process Artisan Soap'
+  weight?: string; // e.g. '100g / 3.5 oz'
+  usageInstructions?: string;
+  careInstructions?: string; // e.g. 'Keep dry between uses in a draining soap dish'
+  suitableFor?: string; // e.g. 'Daily face & body cleansing for sensitive skin'
+}
+
+/**
  * Extensible union for vertical-specific attributes
  */
 export type VerticalAttributes =
   | GroceryProductAttributes
   | FashionProductAttributes
+  | BeautyProductAttributes
   | Record<string, unknown>;
 
 export interface ProductVariant {

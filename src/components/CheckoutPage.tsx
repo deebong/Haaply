@@ -126,6 +126,45 @@ const ATELIER_DELIVERY_SLOTS: DeliverySlot[] = [
 ];
 
 /**
+ * Natural skincare shipping & studio pickup options for Anya Soaps.
+ */
+const ANYA_DELIVERY_SLOTS: DeliverySlot[] = [
+  {
+    id: 'slot-anya-standard',
+    date: 'standard',
+    displayDate: 'Studio Express Courier',
+    startTime: '09:00',
+    endTime: '18:00',
+    displayTime: '2 – 3 Business Days',
+    available: true,
+    capacity: 40,
+    note: 'Hand-packed with eco-friendly botanical padding',
+  },
+  {
+    id: 'slot-anya-priority',
+    date: 'priority',
+    displayDate: 'Priority Air Dispatch',
+    startTime: '09:00',
+    endTime: '18:00',
+    displayTime: '1 – 2 Business Days',
+    available: true,
+    capacity: 20,
+    note: 'Insured rapid transit direct from Coimbatore atelier',
+  },
+  {
+    id: 'slot-anya-pickup',
+    date: 'pickup',
+    displayDate: 'Studio Workshop Pickup',
+    startTime: '10:00',
+    endTime: '17:00',
+    displayTime: 'Same Day (Coimbatore Atelier)',
+    available: true,
+    capacity: 15,
+    note: 'Collect freshly stamped artisan bars in person',
+  },
+];
+
+/**
  * Payment method options.
  * Clearly communicates that live gateway integration is not connected yet.
  */
@@ -167,8 +206,9 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
   const { store: activeStore } = useActiveStore();
   const { site } = useConfig();
   const isAtelier = activeStore.vertical === 'fashion' || activeStore.id === 'store-atelier';
+  const isAnya = activeStore.vertical === 'beauty' || activeStore.id === 'store-anyasoaps' || theme.id === 'anyasoaps';
 
-  const deliverySlots = isAtelier ? ATELIER_DELIVERY_SLOTS : TEMPORARY_DELIVERY_SLOTS;
+  const deliverySlots = isAtelier ? ATELIER_DELIVERY_SLOTS : isAnya ? ANYA_DELIVERY_SLOTS : TEMPORARY_DELIVERY_SLOTS;
 
   // 1. Calculations sourced directly from StoreInstance / SiteConfig
   const subtotal = useMemo(() => {
@@ -178,8 +218,8 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
     );
   }, [cartItems]);
 
-  const freeDeliveryThreshold = site.delivery.freeDeliveryThreshold ?? (isAtelier ? 5000 : 199);
-  const standardFee = site.delivery.standardDeliveryFee ?? (isAtelier ? 150 : 25);
+  const freeDeliveryThreshold = site.delivery.freeDeliveryThreshold ?? (isAtelier ? 5000 : isAnya ? 1500 : 199);
+  const standardFee = site.delivery.standardDeliveryFee ?? (isAtelier ? 150 : isAnya ? 80 : 25);
   const deliveryFee = subtotal >= freeDeliveryThreshold || subtotal === 0 ? 0 : standardFee;
   const grandTotal = subtotal + deliveryFee;
   const totalItemsCount = useMemo(() => {
@@ -189,14 +229,14 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
   // 2. State: Delivery Address (Neutral temporary defaults based on store territory)
   const [address, setAddress] = useState<CheckoutAddress>({
     storeId: activeStore.id,
-    recipientName: isLoggedIn ? (isAtelier ? 'Ananya Sharma' : 'Customer') : '',
-    phone: isAtelier ? '9880123456' : '',
-    houseFlat: isAtelier ? 'Penthouse 12, Sobha Primrose' : '',
-    street: isAtelier ? 'Lavelle Road' : '',
-    area: isAtelier ? 'Lavelle Road' : (deliveryLocation.area || 'Rangasamy Nagar'),
-    city: isAtelier ? 'Bangalore' : (deliveryLocation.city || 'Coimbatore'),
-    pincode: isAtelier ? '560001' : (deliveryLocation.pincode || '641007'),
-    landmark: isAtelier ? 'Near Bangalore Club' : (deliveryLocation.landmark || ''),
+    recipientName: isLoggedIn ? (isAtelier ? 'Ananya Sharma' : isAnya ? 'Priya Raman' : 'Customer') : '',
+    phone: isAtelier ? '9880123456' : isAnya ? '9840123456' : '',
+    houseFlat: isAtelier ? 'Penthouse 12, Sobha Primrose' : isAnya ? '14/B, Lotus Sanctuary' : '',
+    street: isAtelier ? 'Lavelle Road' : isAnya ? 'Race Course Road' : '',
+    area: isAtelier ? 'Lavelle Road' : isAnya ? 'Race Course' : (deliveryLocation.area || 'Rangasamy Nagar'),
+    city: isAtelier ? 'Bangalore' : isAnya ? 'Coimbatore' : (deliveryLocation.city || 'Coimbatore'),
+    pincode: isAtelier ? '560001' : isAnya ? '641018' : (deliveryLocation.pincode || '641007'),
+    landmark: isAtelier ? 'Near Bangalore Club' : isAnya ? 'Opposite Botanical Garden' : (deliveryLocation.landmark || ''),
     deliveryInstructions: '',
   });
 
@@ -432,17 +472,25 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
         id="checkout-empty-state"
         className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-10 py-10 sm:py-16 text-center"
       >
-        <div className="bg-white rounded-[22px] border border-[#E7E7DF] p-8 sm:p-12 md:p-14 max-w-xl mx-auto shadow-xs">
-          <div className="w-16 h-16 rounded-full bg-[#F2F3ED] text-[#626B69] flex items-center justify-center mx-auto mb-4">
+        <div className={`p-8 sm:p-12 md:p-14 max-w-xl mx-auto shadow-xs rounded-[22px] ${
+          isAnya
+            ? 'bg-white border border-[#E7C8CF]'
+            : 'bg-white border border-[#E7E7DF]'
+        }`}>
+          <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
+            isAnya ? 'bg-[#FFF4F6] text-[#8FA08C]' : 'bg-[#F2F3ED] text-[#626B69]'
+          }`}>
             <ShoppingBag className="w-8 h-8 stroke-[1.5]" />
           </div>
           <h1 className={`text-xl sm:text-2xl font-bold tracking-tight ${
-            isAtelier ? 'text-[#141414] font-serif' : 'text-[#004B68]'
+            isAnya ? 'text-[#2F2326] font-serif' : isAtelier ? 'text-[#141414] font-serif' : 'text-[#004B68]'
           }`}>
-            {isAtelier ? 'Your Shopping Bag is Empty' : 'Your Basket is Empty'}
+            {isAnya ? 'Your Artisan Bag is Empty' : isAtelier ? 'Your Shopping Bag is Empty' : 'Your Basket is Empty'}
           </h1>
-          <p className="text-sm text-[#626B69] mt-2 leading-relaxed">
-            {isAtelier
+          <p className={`text-sm mt-2 leading-relaxed ${isAnya ? 'text-[#6F5B60]' : 'text-[#626B69]'}`}>
+            {isAnya
+              ? 'There are no botanical soaps to check out right now. Explore cold-processed goat milk, soothing avarampoo, and rich shea butter bars.'
+              : isAtelier
               ? 'There are no pieces to check out right now. Explore contemporary tailored silhouettes, fine-knit layers, and luxury natural fabrics.'
               : "There are no items to check out right now. Explore today's freshly ground batters, wholesome millets, and morning essentials."}
           </p>
@@ -452,16 +500,24 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
               type="button"
               onClick={() => onNavigate('/shop')}
               className={`w-full sm:w-auto px-6 py-3 text-white text-sm font-bold rounded-xl transition-colors shadow-xs ${
-                isAtelier ? 'bg-[#181818] hover:bg-black uppercase tracking-wider text-xs' : 'bg-[#53B847] hover:bg-[#469e3c]'
+                isAnya
+                  ? 'bg-[#2F2326] hover:bg-[#4A3B3E] uppercase tracking-wider text-xs rounded-[12px]'
+                  : isAtelier
+                  ? 'bg-[#181818] hover:bg-black uppercase tracking-wider text-xs'
+                  : 'bg-[#53B847] hover:bg-[#469e3c]'
               }`}
             >
-              {isAtelier ? 'Browse Collection' : 'Browse Fresh Shop'}
+              {isAnya ? 'Browse Artisan Collection' : isAtelier ? 'Browse Collection' : 'Browse Fresh Shop'}
             </button>
             <button
               id="checkout-empty-home-btn"
               type="button"
               onClick={() => onNavigate('/')}
-              className="w-full sm:w-auto px-6 py-3 bg-[#F2F3ED] hover:bg-[#E7E7DF] text-[#172126] text-sm font-semibold rounded-xl transition-colors"
+              className={`w-full sm:w-auto px-6 py-3 text-sm font-semibold rounded-xl transition-colors ${
+                isAnya
+                  ? 'bg-[#FFF4F6] hover:bg-[#FDECEF] text-[#2F2326] border border-[#E7C8CF]'
+                  : 'bg-[#F2F3ED] hover:bg-[#E7E7DF] text-[#172126]'
+              }`}
             >
               Return Home
             </button>
@@ -488,7 +544,9 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
           id="checkout-breadcrumb-home"
           type="button"
           onClick={() => onNavigate('/')}
-          className="hover:text-[#004B68] transition-colors focus:outline-none"
+          className={`transition-colors focus:outline-none ${
+            isAnya ? 'hover:text-[#8FA08C]' : isAtelier ? 'hover:text-[#181818]' : 'hover:text-[#004B68]'
+          }`}
         >
           Home
         </button>
@@ -497,12 +555,14 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
           id="checkout-breadcrumb-cart"
           type="button"
           onClick={() => onNavigate('/cart')}
-          className="hover:text-[#004B68] transition-colors focus:outline-none"
+          className={`transition-colors focus:outline-none ${
+            isAnya ? 'hover:text-[#8FA08C]' : isAtelier ? 'hover:text-[#181818]' : 'hover:text-[#004B68]'
+          }`}
         >
-          {isAtelier ? 'Shopping Bag' : 'Your Basket'}
+          {isAnya ? 'Artisan Bag' : isAtelier ? 'Shopping Bag' : 'Your Basket'}
         </button>
         <span className="text-[#626B69]/60">/</span>
-        <span className="font-semibold text-[#172126]">Checkout</span>
+        <span className={`font-semibold ${isAnya ? 'text-[#2F2326]' : 'text-[#172126]'}`}>Checkout</span>
       </nav>
 
       {/* 2. HEADER BAR */}
@@ -511,13 +571,15 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
           <h1
             id="checkout-heading"
             className={`text-2xl sm:text-3xl font-bold tracking-tight ${
-              isAtelier ? 'text-[#141414] font-serif' : 'text-[#004B68]'
+              isAnya ? 'text-[#2F2326] font-serif' : isAtelier ? 'text-[#141414] font-serif' : 'text-[#004B68]'
             }`}
           >
-            {isAtelier ? 'Atelier Checkout' : 'Checkout & Delivery'}
+            {isAnya ? 'Anya Studio Checkout' : isAtelier ? 'Atelier Checkout' : 'Checkout & Delivery'}
           </h1>
-          <p className="text-xs sm:text-sm text-[#626B69] mt-1">
-            {isAtelier
+          <p className={`text-xs sm:text-sm mt-1 ${isAnya ? 'text-[#6F5B60]' : 'text-[#626B69]'}`}>
+            {isAnya
+              ? 'Confirm your delivery address, studio shipping method, and review your selected botanical soaps.'
+              : isAtelier
               ? 'Confirm your delivery address, shipping method, and review your selected pieces.'
               : 'Confirm your delivery address, choose a dispatch slot, and review your items.'}
           </p>
@@ -528,11 +590,15 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
           type="button"
           onClick={() => onNavigate('/cart')}
           className={`inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold transition-colors py-1 focus:outline-none self-start sm:self-auto ${
-            isAtelier ? 'text-[#181818] hover:text-[#767676]' : 'text-[#53B847] hover:text-[#469e3c]'
+            isAnya
+              ? 'text-[#2F2326] hover:text-[#8FA08C]'
+              : isAtelier
+              ? 'text-[#181818] hover:text-[#767676]'
+              : 'text-[#53B847] hover:text-[#469e3c]'
           }`}
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span>{isAtelier ? 'Back to Bag' : 'Back to Basket'}</span>
+          <span>{isAnya || isAtelier ? 'Back to Bag' : 'Back to Basket'}</span>
         </button>
       </div>
 
@@ -588,23 +654,41 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
       {backendBoundaryNotice && (
         <div
           id="checkout-boundary-notice"
-          className="mb-6 p-4 sm:p-5 rounded-[18px] bg-[#004B68]/5 border border-[#004B68]/20 text-[#004B68] text-xs sm:text-sm flex items-start gap-3.5 animate-in fade-in duration-200"
+          className={`mb-6 p-4 sm:p-5 rounded-[18px] text-xs sm:text-sm flex items-start gap-3.5 animate-in fade-in duration-200 ${
+            isAnya
+              ? 'bg-[#FFF4F6] border border-[#E7C8CF] text-[#2F2326]'
+              : isAtelier
+              ? 'bg-[#F5F5F3] border border-[#E7E7DF] text-[#141414]'
+              : 'bg-[#004B68]/5 border border-[#004B68]/20 text-[#004B68]'
+          }`}
         >
-          <Info className="w-5 h-5 text-[#004B68] shrink-0 mt-0.5" />
+          <Info className={`w-5 h-5 shrink-0 mt-0.5 ${
+            isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#181818]' : 'text-[#004B68]'
+          }`} />
           <div className="flex-1">
-            <h4 className="font-bold text-sm text-[#004B68]">
+            <h4 className={`font-bold text-sm ${
+              isAnya ? 'text-[#2F2326]' : isAtelier ? 'text-[#141414]' : 'text-[#004B68]'
+            }`}>
               Checkout Boundary Verified
             </h4>
-            <p className="text-xs sm:text-sm text-[#626B69] mt-1 leading-relaxed">
+            <p className={`text-xs sm:text-sm mt-1 leading-relaxed ${isAnya ? 'text-[#6F5B60]' : 'text-[#626B69]'}`}>
               {backendBoundaryNotice}
             </p>
             <div className="mt-3 flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white border border-[#E7E7DF] text-[11px] font-semibold text-[#172126]">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#53B847]" />
+              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold ${
+                isAnya ? 'bg-white border border-[#E7C8CF] text-[#2F2326]' : 'bg-white border border-[#E7E7DF] text-[#172126]'
+              }`}>
+                <ShieldCheck className={`w-3.5 h-3.5 ${
+                  isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'
+                }`} />
                 Cart & pricing validated (₹{grandTotal})
               </span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white border border-[#E7E7DF] text-[11px] font-semibold text-[#172126]">
-                <Clock className="w-3.5 h-3.5 text-[#004B68]" />
+              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold ${
+                isAnya ? 'bg-white border border-[#E7C8CF] text-[#2F2326]' : 'bg-white border border-[#E7E7DF] text-[#172126]'
+              }`}>
+                <Clock className={`w-3.5 h-3.5 ${
+                  isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#767676]' : 'text-[#004B68]'
+                }`} />
                 Slot: {selectedSlot?.displayTime}
               </span>
             </div>
@@ -626,13 +710,21 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
           {/* SECTION A: DELIVERY ADDRESS */}
           <section
             id="checkout-delivery-address-section"
-            className="bg-white rounded-[20px] border border-[#E7E7DF] p-5 sm:p-6 shadow-xs"
+            className={`rounded-[20px] p-5 sm:p-6 shadow-xs ${
+              isAnya ? 'bg-white border border-[#E7C8CF]' : 'bg-white border border-[#E7E7DF]'
+            }`}
             aria-labelledby="address-section-heading"
           >
-            <div className="flex items-center justify-between pb-4 border-b border-[#E7E7DF]/70">
+            <div className={`flex items-center justify-between pb-4 border-b ${
+              isAnya ? 'border-[#E7C8CF]/70' : 'border-[#E7E7DF]/70'
+            }`}>
               <div className="flex items-center gap-2.5">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${
-                  isAtelier ? 'bg-[#181818] text-white' : 'bg-[#53B847]/10 text-[#53B847]'
+                  isAnya
+                    ? 'bg-[#FFF4F6] text-[#8FA08C] border border-[#E7C8CF]'
+                    : isAtelier
+                    ? 'bg-[#181818] text-white'
+                    : 'bg-[#53B847]/10 text-[#53B847]'
                 }`}>
                   1
                 </div>
@@ -640,13 +732,17 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                   <h2
                     id="address-section-heading"
                     className={`text-base sm:text-lg font-bold ${
-                      isAtelier ? 'text-[#141414] font-serif' : 'text-[#004B68]'
+                      isAnya ? 'text-[#2F2326] font-serif' : isAtelier ? 'text-[#141414] font-serif' : 'text-[#004B68]'
                     }`}
                   >
-                    {isAtelier ? 'Shipping Address' : 'Delivery Address'}
+                    {isAnya || isAtelier ? 'Shipping Address' : 'Delivery Address'}
                   </h2>
                   <p className="text-[11px] sm:text-xs text-[#626B69]">
-                    {isAtelier ? 'Where should we deliver your tailored pieces?' : 'Where should we bring your fresh morning dispatch?'}
+                    {isAnya
+                      ? 'Where should we deliver your handcrafted botanical soaps?'
+                      : isAtelier
+                      ? 'Where should we deliver your tailored pieces?'
+                      : 'Where should we bring your fresh morning dispatch?'}
                   </p>
                 </div>
               </div>
@@ -655,7 +751,13 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                 id="checkout-edit-address-btn"
                 type="button"
                 onClick={handleOpenAddressModal}
-                className="inline-flex items-center gap-1 text-xs font-bold text-[#172126] hover:text-[#53B847] transition-colors px-3 py-1.5 rounded-lg border border-[#E7E7DF] hover:bg-[#F2F3ED]"
+                className={`inline-flex items-center gap-1 text-xs font-bold transition-colors px-3 py-1.5 rounded-lg border ${
+                  isAnya
+                    ? 'border-[#E7C8CF] text-[#2F2326] hover:border-[#8FA08C] hover:bg-[#FFF4F6]'
+                    : isAtelier
+                    ? 'border-[#E7E7DF] text-[#141414] hover:bg-[#F2F3ED]'
+                    : 'text-[#172126] hover:text-[#53B847] border-[#E7E7DF] hover:bg-[#F2F3ED]'
+                }`}
               >
                 <Edit2 className="w-3.5 h-3.5" />
                 <span>{isAddressComplete ? 'Change' : 'Enter Details'}</span>
@@ -665,39 +767,51 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
             {/* Selected Address Display Card */}
             <div className="mt-4 pt-1">
               {isAddressComplete ? (
-                <div className="p-4 rounded-xl bg-[#FAFAF6] border border-[#E7E7DF]/80 text-xs sm:text-sm text-[#172126]">
+                <div className={`p-4 rounded-xl border text-xs sm:text-sm ${
+                  isAnya ? 'bg-[#FFF8FA] border-[#E7C8CF] text-[#2F2326]' : 'bg-[#FAFAF6] border-[#E7E7DF]/80 text-[#172126]'
+                }`}>
                   <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <span className={`font-bold text-sm ${isAtelier ? 'text-[#141414]' : 'text-[#004B68]'}`}>
+                    <span className={`font-bold text-sm ${
+                      isAnya ? 'text-[#2F2326]' : isAtelier ? 'text-[#141414]' : 'text-[#004B68]'
+                    }`}>
                       {address.recipientName}
                     </span>
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#E7E7DF]/60 text-[#626B69]">
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                      isAnya ? 'bg-white text-[#6F5B60] border border-[#E7C8CF]' : 'bg-[#E7E7DF]/60 text-[#626B69]'
+                    }`}>
                       +91 {address.phone}
                     </span>
                   </div>
-                  <p className="text-[#626B69] leading-relaxed">
+                  <p className={isAnya ? 'text-[#6F5B60] leading-relaxed' : 'text-[#626B69] leading-relaxed'}>
                     {address.houseFlat}, {address.street}
                   </p>
-                  <p className="text-[#626B69]">
-                    {address.area}, {address.city} — <strong className="text-[#172126]">{address.pincode}</strong>
+                  <p className={isAnya ? 'text-[#6F5B60]' : 'text-[#626B69]'}>
+                    {address.area}, {address.city} — <strong className={isAnya ? 'text-[#2F2326]' : 'text-[#172126]'}>{address.pincode}</strong>
                   </p>
                   {address.landmark && (
-                    <p className="text-[11px] text-[#626B69] mt-1 italic">
+                    <p className={`text-[11px] mt-1 italic ${isAnya ? 'text-[#8E7A7E]' : 'text-[#626B69]'}`}>
                       Landmark: {address.landmark}
                     </p>
                   )}
                   {address.deliveryInstructions && (
-                    <p className={`text-[11px] font-medium mt-1 ${isAtelier ? 'text-[#181818]' : 'text-[#53B847]'}`}>
+                    <p className={`text-[11px] font-medium mt-1 ${
+                      isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'
+                    }`}>
                       Instructions: {address.deliveryInstructions}
                     </p>
                   )}
                 </div>
               ) : (
-                <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200/80 text-xs sm:text-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className={`p-4 rounded-xl border text-xs sm:text-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                  isAnya
+                    ? 'bg-[#FFF4F6] border-[#E7C8CF] text-[#2F2326]'
+                    : 'bg-amber-50/70 border-amber-200/80 text-amber-900'
+                }`}>
                   <div>
-                    <p className="font-bold text-amber-900">
+                    <p className={`font-bold ${isAnya ? 'text-[#2F2326]' : 'text-amber-900'}`}>
                       Incomplete Delivery Details
                     </p>
-                    <p className="text-xs text-amber-800 mt-0.5">
+                    <p className={`text-xs mt-0.5 ${isAnya ? 'text-[#6F5B60]' : 'text-amber-800'}`}>
                       Please enter your name, contact phone, and exact house/street address.
                     </p>
                   </div>
@@ -705,7 +819,11 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                     type="button"
                     onClick={handleOpenAddressModal}
                     className={`px-4 py-2 text-white text-xs font-bold rounded-lg transition-colors shrink-0 self-start sm:self-auto ${
-                      isAtelier ? 'bg-[#181818] hover:bg-black' : 'bg-[#004B68] hover:bg-[#00384e]'
+                      isAnya
+                        ? 'bg-[#2F2326] hover:bg-[#4A3B3E] rounded-[10px]'
+                        : isAtelier
+                        ? 'bg-[#181818] hover:bg-black'
+                        : 'bg-[#004B68] hover:bg-[#00384e]'
                     }`}
                   >
                     Add Address
@@ -718,13 +836,21 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
           {/* SECTION B: DELIVERY SLOT */}
           <section
             id="checkout-delivery-slot-section"
-            className="bg-white rounded-[20px] border border-[#E7E7DF] p-5 sm:p-6 shadow-xs"
+            className={`rounded-[20px] p-5 sm:p-6 shadow-xs ${
+              isAnya ? 'bg-white border border-[#E7C8CF]' : 'bg-white border border-[#E7E7DF]'
+            }`}
             aria-labelledby="slot-section-heading"
           >
-            <div className="flex items-center justify-between pb-4 border-b border-[#E7E7DF]/70">
+            <div className={`flex items-center justify-between pb-4 border-b ${
+              isAnya ? 'border-[#E7C8CF]/70' : 'border-[#E7E7DF]/70'
+            }`}>
               <div className="flex items-center gap-2.5">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${
-                  isAtelier ? 'bg-[#181818] text-white' : 'bg-[#53B847]/10 text-[#53B847]'
+                  isAnya
+                    ? 'bg-[#FFF4F6] text-[#8FA08C] border border-[#E7C8CF]'
+                    : isAtelier
+                    ? 'bg-[#181818] text-white'
+                    : 'bg-[#53B847]/10 text-[#53B847]'
                 }`}>
                   2
                 </div>
@@ -732,21 +858,29 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                   <h2
                     id="slot-section-heading"
                     className={`text-base sm:text-lg font-bold ${
-                      isAtelier ? 'text-[#141414] font-serif' : 'text-[#004B68]'
+                      isAnya ? 'text-[#2F2326] font-serif' : isAtelier ? 'text-[#141414] font-serif' : 'text-[#004B68]'
                     }`}
                   >
-                    {isAtelier ? 'Shipping Method' : 'Delivery Slot'}
+                    {isAnya ? 'Studio Shipping Method' : isAtelier ? 'Shipping Method' : 'Delivery Slot'}
                   </h2>
                   <p className="text-[11px] sm:text-xs text-[#626B69]">
-                    {isAtelier ? 'Select your preferred courier service speed' : 'Select when you would like this order freshly delivered'}
+                    {isAnya
+                      ? 'Select your preferred botanical studio dispatch speed'
+                      : isAtelier
+                      ? 'Select your preferred courier service speed'
+                      : 'Select when you would like this order freshly delivered'}
                   </p>
                 </div>
               </div>
 
               <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${
-                isAtelier ? 'text-[#181818] bg-[#181818]/10' : 'text-[#53B847] bg-[#53B847]/10'
+                isAnya
+                  ? 'text-[#8FA08C] bg-[#FFF4F6] border border-[#E7C8CF]'
+                  : isAtelier
+                  ? 'text-[#181818] bg-[#181818]/10'
+                  : 'text-[#53B847] bg-[#53B847]/10'
               }`}>
-                {isAtelier ? 'Insured Courier' : 'Guaranteed Fresh'}
+                {isAnya ? 'Studio Direct' : isAtelier ? 'Insured Courier' : 'Guaranteed Fresh'}
               </span>
             </div>
 
@@ -759,9 +893,13 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                     key={slot.id}
                     className={`flex items-start justify-between p-3.5 sm:p-4 rounded-xl border transition-all cursor-pointer ${
                       isSelected
-                        ? isAtelier
+                        ? isAnya
+                          ? 'border-[#8FA08C] bg-[#FFF4F6] shadow-xs'
+                          : isAtelier
                           ? 'border-[#181818] bg-[#181818]/5 shadow-xs'
                           : 'border-[#53B847] bg-[#53B847]/5 shadow-xs'
+                        : isAnya
+                        ? 'border-[#E7C8CF] hover:border-[#8FA08C] bg-white'
                         : 'border-[#E7E7DF] hover:border-[#626B69]/40 bg-white'
                     }`}
                   >
@@ -772,21 +910,27 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                         value={slot.id}
                         checked={isSelected}
                         onChange={() => setSelectedSlotId(slot.id)}
-                        className={`mt-1 h-4 w-4 border-[#E7E7DF] ${
-                          isAtelier ? 'text-[#181818] focus:ring-[#181818]' : 'text-[#53B847] focus:ring-[#53B847]'
+                        className={`mt-1 h-4 w-4 ${
+                          isAnya
+                            ? 'text-[#8FA08C] focus:ring-[#8FA08C] border-[#E7C8CF]'
+                            : isAtelier
+                            ? 'text-[#181818] focus:ring-[#181818] border-[#E7E7DF]'
+                            : 'text-[#53B847] focus:ring-[#53B847] border-[#E7E7DF]'
                         }`}
                       />
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-[#172126]">
+                          <span className={`text-xs font-bold ${isAnya ? 'text-[#2F2326]' : 'text-[#172126]'}`}>
                             {slot.displayDate}
                           </span>
-                          <span className="text-xs font-semibold text-[#181818] bg-[#E7E7DF]/50 px-2 py-0.5 rounded-md">
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-md ${
+                            isAnya ? 'text-[#2F2326] bg-white border border-[#E7C8CF]' : 'text-[#181818] bg-[#E7E7DF]/50'
+                          }`}>
                             {slot.displayTime}
                           </span>
                         </div>
                         {slot.note && (
-                          <p className="text-[11px] text-[#626B69] mt-1">
+                          <p className={`text-[11px] mt-1 ${isAnya ? 'text-[#6F5B60]' : 'text-[#626B69]'}`}>
                             {slot.note}
                           </p>
                         )}
@@ -795,7 +939,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
 
                     <div className="text-right shrink-0">
                       <span className={`text-[11px] font-semibold flex items-center gap-1 justify-end ${
-                        isAtelier ? 'text-[#181818]' : 'text-[#53B847]'
+                        isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'
                       }`}>
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         Available
@@ -807,30 +951,44 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
             </div>
 
             <p className="text-[11px] text-[#626B69] mt-3 flex items-center gap-1.5">
-              <Info className="w-3.5 h-3.5 text-[#626B69] shrink-0" />
+              <Info className={`w-3.5 h-3.5 shrink-0 ${isAnya ? 'text-[#8FA08C]' : 'text-[#626B69]'}`} />
               <span>
-                {isAtelier
+                {isAnya
+                  ? 'Orders are packaged in eco-friendly plastic-free boxes and dispatched from our Coimbatore botanical studio.'
+                  : isAtelier
                   ? 'Orders are packaged in breathable protective garment covers and shipped via insured courier.'
                   : 'Slots reflect scheduled dispatch rounds from our Coimbatore local kitchen.'}
               </span>
             </p>
           </section>
 
-          {/* SECTION C: PAYMENT METHOD (Architecture placeholder clearly stated) */}
+          {/* SECTION C: PAYMENT METHOD */}
           <section
             id="checkout-payment-method-section"
-            className="bg-white rounded-[20px] border border-[#E7E7DF] p-5 sm:p-6 shadow-xs"
+            className={`rounded-[20px] p-5 sm:p-6 shadow-xs ${
+              isAnya ? 'bg-white border border-[#E7C8CF]' : 'bg-white border border-[#E7E7DF]'
+            }`}
             aria-labelledby="payment-section-heading"
           >
-            <div className="flex items-center justify-between pb-4 border-b border-[#E7E7DF]/70">
+            <div className={`flex items-center justify-between pb-4 border-b ${
+              isAnya ? 'border-[#E7C8CF]/70' : 'border-[#E7E7DF]/70'
+            }`}>
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-[#53B847]/10 text-[#53B847] flex items-center justify-center font-bold text-xs">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${
+                  isAnya
+                    ? 'bg-[#FFF4F6] text-[#8FA08C] border border-[#E7C8CF]'
+                    : isAtelier
+                    ? 'bg-[#181818] text-white'
+                    : 'bg-[#53B847]/10 text-[#53B847]'
+                }`}>
                   3
                 </div>
                 <div>
                   <h2
                     id="payment-section-heading"
-                    className="text-base sm:text-lg font-bold text-[#004B68]"
+                    className={`text-base sm:text-lg font-bold ${
+                      isAnya ? 'text-[#2F2326] font-serif' : isAtelier ? 'text-[#141414] font-serif' : 'text-[#004B68]'
+                    }`}
                   >
                     Payment Method
                   </h2>
@@ -840,7 +998,13 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                 </div>
               </div>
 
-              <span className="text-[11px] font-semibold text-[#004B68] bg-[#F2F3ED] px-2.5 py-1 rounded-full">
+              <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${
+                isAnya
+                  ? 'text-[#8FA08C] bg-[#FFF4F6] border border-[#E7C8CF]'
+                  : isAtelier
+                  ? 'text-[#181818] bg-[#181818]/10'
+                  : 'text-[#004B68] bg-[#F2F3ED]'
+              }`}>
                 Secure 256-bit
               </span>
             </div>
@@ -854,7 +1018,13 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                     key={method.id}
                     className={`flex items-start justify-between p-3.5 sm:p-4 rounded-xl border transition-all cursor-pointer ${
                       isSelected
-                        ? 'border-[#004B68] bg-[#004B68]/5 shadow-xs'
+                        ? isAnya
+                          ? 'border-[#8FA08C] bg-[#FFF4F6] shadow-xs'
+                          : isAtelier
+                          ? 'border-[#181818] bg-[#181818]/5 shadow-xs'
+                          : 'border-[#004B68] bg-[#004B68]/5 shadow-xs'
+                        : isAnya
+                        ? 'border-[#E7C8CF] hover:border-[#8FA08C] bg-white'
                         : 'border-[#E7E7DF] hover:border-[#626B69]/40 bg-white'
                     }`}
                   >
@@ -865,15 +1035,21 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                         value={method.id}
                         checked={isSelected}
                         onChange={() => setSelectedPaymentMethod(method.id)}
-                        className="mt-1 h-4 w-4 text-[#004B68] focus:ring-[#004B68] border-[#E7E7DF]"
+                        className={`mt-1 h-4 w-4 ${
+                          isAnya
+                            ? 'text-[#8FA08C] focus:ring-[#8FA08C] border-[#E7C8CF]'
+                            : isAtelier
+                            ? 'text-[#181818] focus:ring-[#181818] border-[#E7E7DF]'
+                            : 'text-[#004B68] focus:ring-[#004B68] border-[#E7E7DF]'
+                        }`}
                       />
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs sm:text-sm font-bold text-[#172126]">
+                          <span className={`text-xs sm:text-sm font-bold ${isAnya ? 'text-[#2F2326]' : 'text-[#172126]'}`}>
                             {method.name}
                           </span>
                         </div>
-                        <p className="text-[11px] text-[#626B69] mt-0.5">
+                        <p className={`text-[11px] mt-0.5 ${isAnya ? 'text-[#6F5B60]' : 'text-[#626B69]'}`}>
                           {method.description}
                         </p>
                       </div>
@@ -881,7 +1057,11 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
 
                     <div className="shrink-0 text-right">
                       {method.badge && (
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#626B69] bg-[#E7E7DF]/70 px-2 py-0.5 rounded">
+                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
+                          isAnya
+                            ? 'bg-white border border-[#E7C8CF] text-[#6F5B60]'
+                            : 'bg-[#E7E7DF]/70 text-[#626B69]'
+                        }`}>
                           {method.badge}
                         </span>
                       )}
@@ -891,8 +1071,10 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
               })}
             </div>
 
-            <div className="mt-4 p-3 rounded-xl bg-[#FAFAF6] border border-[#E7E7DF] text-[11px] text-[#626B69] flex items-center gap-2">
-              <Lock className="w-3.5 h-3.5 text-[#004B68] shrink-0" />
+            <div className={`mt-4 p-3 rounded-xl border text-[11px] flex items-center gap-2 ${
+              isAnya ? 'bg-[#FFF8FA] border-[#E7C8CF] text-[#6F5B60]' : 'bg-[#FAFAF6] border-[#E7E7DF] text-[#626B69]'
+            }`}>
+              <Lock className={`w-3.5 h-3.5 shrink-0 ${isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#181818]' : 'text-[#004B68]'}`} />
               <span>
                 Payment integration is scheduled for the next release phase. No card or UPI details are stored or charged today.
               </span>
@@ -904,11 +1086,15 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
         <div className="lg:col-span-5 xl:col-span-4 lg:sticky lg:top-24 space-y-4">
           <div
             id="checkout-order-summary-card"
-            className="bg-white rounded-[20px] border border-[#E7E7DF] p-5 sm:p-6 shadow-xs"
+            className={`rounded-[20px] p-5 sm:p-6 shadow-xs ${
+              isAnya ? 'bg-white border border-[#E7C8CF]' : 'bg-white border border-[#E7E7DF]'
+            }`}
           >
-            <div className="flex items-center justify-between pb-3.5 border-b border-[#E7E7DF]/70">
+            <div className={`flex items-center justify-between pb-3.5 border-b ${
+              isAnya ? 'border-[#E7C8CF]/70' : 'border-[#E7E7DF]/70'
+            }`}>
               <h3 className={`text-base sm:text-lg font-bold ${
-                isAtelier ? 'text-[#141414] font-serif' : 'text-[#004B68]'
+                isAnya ? 'text-[#2F2326] font-serif' : isAtelier ? 'text-[#141414] font-serif' : 'text-[#004B68]'
               }`}>
                 Order Summary
               </h3>
@@ -916,15 +1102,15 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                 type="button"
                 onClick={() => onNavigate('/cart')}
                 className={`text-xs font-semibold hover:underline ${
-                  isAtelier ? 'text-[#181818]' : 'text-[#53B847]'
+                  isAnya ? 'text-[#8FA08C] hover:text-[#2F2326]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'
                 }`}
               >
-                {isAtelier ? 'Edit bag' : 'Edit basket'} · {totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'}
+                {isAnya || isAtelier ? 'Edit bag' : 'Edit basket'} · {totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'}
               </button>
             </div>
 
             {/* Item List (naturally content-driven, no internal scrollbar) */}
-            <div className="py-3 divide-y divide-[#E7E7DF]/60">
+            <div className={`py-3 divide-y ${isAnya ? 'divide-[#E7C8CF]/60' : 'divide-[#E7E7DF]/60'}`}>
               {cartItems.map((item) => {
                 const variant = item.variant;
                 const unitPrice = variant?.price ?? item.product.price;
@@ -938,15 +1124,15 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                     className="py-2.5 flex items-center justify-between gap-3 text-xs"
                   >
                     <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-[#172126] truncate">
+                      <p className={`font-semibold truncate ${isAnya ? 'text-[#2F2326]' : 'text-[#172126]'}`}>
                         {item.product.name}
                       </p>
-                      <p className="text-[11px] text-[#626B69]">
+                      <p className={`text-[11px] ${isAnya ? 'text-[#6F5B60]' : 'text-[#626B69]'}`}>
                         {packDisplay} × {item.quantity}
                       </p>
                     </div>
                     <div className="text-right shrink-0">
-                      <span className="font-bold text-[#172126]">
+                      <span className={`font-bold ${isAnya ? 'text-[#2F2326]' : 'text-[#172126]'}`}>
                         ₹{unitPrice * item.quantity}
                       </span>
                     </div>
@@ -956,36 +1142,46 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
             </div>
 
             {/* Price Calculations */}
-            <div className="pt-3 border-t border-[#E7E7DF]/70 space-y-2 text-xs">
+            <div className={`pt-3 border-t space-y-2 text-xs ${isAnya ? 'border-[#E7C8CF]/70' : 'border-[#E7E7DF]/70'}`}>
               <div className="flex items-center justify-between text-[#626B69]">
                 <span>Item Subtotal ({totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'})</span>
-                <span className="font-medium text-[#172126]">₹{subtotal}</span>
+                <span className={`font-medium ${isAnya ? 'text-[#2F2326]' : 'text-[#172126]'}`}>₹{subtotal}</span>
               </div>
 
               <div className="flex items-center justify-between text-[#626B69]">
-                <span>{isAtelier ? 'Shipping Fee' : 'Delivery Charge'}</span>
+                <span>{isAnya ? 'Studio Express Shipping' : isAtelier ? 'Shipping Fee' : 'Delivery Charge'}</span>
                 {deliveryFee === 0 ? (
-                  <span className={`font-bold ${isAtelier ? 'text-[#181818]' : 'text-[#53B847]'}`}>FREE</span>
+                  <span className={`font-bold ${isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'}`}>FREE</span>
                 ) : (
-                  <span className="font-medium text-[#172126]">₹{deliveryFee}</span>
+                  <span className={`font-medium ${isAnya ? 'text-[#2F2326]' : 'text-[#172126]'}`}>₹{deliveryFee}</span>
                 )}
               </div>
 
               {deliveryFee > 0 && (
-                <p className="text-[10px] text-[#626B69] bg-[#FAFAF6] p-2 rounded-lg border border-[#E7E7DF]/60">
-                  {isAtelier
+                <p className={`text-[10px] p-2 rounded-lg border ${
+                  isAnya
+                    ? 'text-[#6F5B60] bg-[#FFF8FA] border-[#E7C8CF]'
+                    : 'text-[#626B69] bg-[#FAFAF6] border-[#E7E7DF]/60'
+                }`}>
+                  {isAnya
+                    ? `Add ₹${freeDeliveryThreshold - subtotal} more of artisan soaps for Complimentary Studio Shipping.`
+                    : isAtelier
                     ? `Add ₹${freeDeliveryThreshold - subtotal} more of collection pieces for Complimentary Courier Shipping.`
                     : `Add ₹${freeDeliveryThreshold - subtotal} more of fresh items for Free Delivery.`}
                 </p>
               )}
 
-              <div className={`pt-3 border-t border-[#E7E7DF] flex items-baseline justify-between ${
-                isAtelier ? 'text-[#141414]' : 'text-[#004B68]'
+              <div className={`pt-3 border-t flex items-baseline justify-between ${
+                isAnya
+                  ? 'border-[#E7C8CF] text-[#2F2326] font-serif'
+                  : isAtelier
+                  ? 'border-[#E7E7DF] text-[#141414]'
+                  : 'border-[#E7E7DF] text-[#004B68]'
               }`}>
                 <span className="text-sm sm:text-base font-bold">Grand Total</span>
                 <div className="text-right">
                   <span className={`text-lg sm:text-xl font-black ${
-                    isAtelier ? 'text-[#141414]' : 'text-[#004B68]'
+                    isAnya ? 'text-[#2F2326]' : isAtelier ? 'text-[#141414]' : 'text-[#004B68]'
                   }`}>
                     ₹{grandTotal}
                   </span>
@@ -1000,13 +1196,15 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                 type="button"
                 onClick={handlePlaceOrder}
                 disabled={isSubmitting}
-                className={`w-full py-3.5 px-4 text-white font-bold text-sm sm:text-base rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${
-                  isAtelier
-                    ? 'bg-[#181818] hover:bg-black active:bg-[#2c2c2c] uppercase tracking-wider text-xs'
-                    : 'bg-[#53B847] hover:bg-[#469e3c] active:bg-[#3d8c34]'
+                className={`w-full py-3.5 px-4 text-white font-bold text-sm sm:text-base transition-all shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${
+                  isAnya
+                    ? 'bg-[#2F2326] hover:bg-[#4A3B3E] rounded-[12px] uppercase tracking-wider text-xs'
+                    : isAtelier
+                    ? 'bg-[#181818] hover:bg-black active:bg-[#2c2c2c] uppercase tracking-wider text-xs rounded-xl'
+                    : 'bg-[#53B847] hover:bg-[#469e3c] active:bg-[#3d8c34] rounded-xl'
                 }`}
               >
-                <span>{isSubmitting ? (isAtelier ? 'Verifying Bag...' : 'Verifying Basket...') : 'Place Order'}</span>
+                <span>{isSubmitting ? (isAnya || isAtelier ? 'Verifying Bag...' : 'Verifying Basket...') : 'Place Order'}</span>
                 <ChevronRight className="w-4 h-4" />
               </button>
               <p className="text-[10px] text-center text-[#626B69] mt-2">
@@ -1017,12 +1215,12 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
             {/* Trust Badges */}
             <div className="mt-5 pt-4 border-t border-[#E7E7DF]/70 grid grid-cols-2 gap-2 text-[11px] text-[#626B69]">
               <div className="flex items-center gap-1.5">
-                <ShieldCheck className={`w-4 h-4 shrink-0 ${isAtelier ? 'text-[#181818]' : 'text-[#53B847]'}`} />
-                <span>{isAtelier ? 'Authentic Natural Fabrics' : '100% Natural Fresh'}</span>
+                <ShieldCheck className={`w-4 h-4 shrink-0 ${isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'}`} />
+                <span>{isAnya ? 'Handmade Cold-Process' : isAtelier ? 'Authentic Natural Fabrics' : '100% Natural Fresh'}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Clock className={`w-4 h-4 shrink-0 ${isAtelier ? 'text-[#767676]' : 'text-[#004B68]'}`} />
-                <span>{isAtelier ? 'Insured Express Courier' : 'Early Morning Dispatch'}</span>
+                <Clock className={`w-4 h-4 shrink-0 ${isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#767676]' : 'text-[#004B68]'}`} />
+                <span>{isAnya ? 'Direct Coimbatore Studio Dispatch' : isAtelier ? 'Insured Express Courier' : 'Early Morning Dispatch'}</span>
               </div>
             </div>
           </div>
@@ -1040,11 +1238,11 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
               Grand Total
             </p>
             <div className="flex items-baseline gap-1.5">
-              <span className={`text-lg font-black ${isAtelier ? 'text-[#141414]' : 'text-[#004B68]'}`}>
+              <span className={`text-lg font-black ${isAnya ? 'text-[#2F2326]' : isAtelier ? 'text-[#141414]' : 'text-[#004B68]'}`}>
                 ₹{grandTotal}
               </span>
               {deliveryFee === 0 && (
-                <span className={`text-[10px] font-bold ${isAtelier ? 'text-[#181818]' : 'text-[#53B847]'}`}>
+                <span className={`text-[10px] font-bold ${isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'}`}>
                   FREE DEL
                 </span>
               )}
@@ -1056,8 +1254,12 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
             type="button"
             onClick={handlePlaceOrder}
             disabled={isSubmitting}
-            className={`flex-1 max-w-[200px] py-3 px-4 text-white font-bold text-sm rounded-xl shadow-xs flex items-center justify-center gap-1.5 disabled:opacity-50 ${
-              isAtelier ? 'bg-[#181818] hover:bg-black uppercase tracking-wider text-xs' : 'bg-[#53B847] hover:bg-[#469e3c]'
+            className={`flex-1 max-w-[200px] py-3 px-4 text-white font-bold text-sm shadow-xs flex items-center justify-center gap-1.5 disabled:opacity-50 ${
+              isAnya
+                ? 'bg-[#2F2326] hover:bg-[#4A3B3E] uppercase tracking-wider text-xs rounded-[12px]'
+                : isAtelier
+                ? 'bg-[#181818] hover:bg-black uppercase tracking-wider text-xs rounded-xl'
+                : 'bg-[#53B847] hover:bg-[#469e3c] rounded-xl'
             }`}
           >
             <span>{isSubmitting ? 'Checking...' : 'Place Order'}</span>
@@ -1082,19 +1284,27 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
             aria-hidden="true"
           />
 
-          <div className="relative w-full max-w-lg bg-white rounded-[22px] shadow-2xl border border-[#E7E7DF] overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col my-auto">
+          <div className={`relative w-full max-w-lg bg-white rounded-[22px] shadow-2xl border overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col my-auto ${
+            isAnya ? 'border-[#E7C8CF]' : 'border-[#E7E7DF]'
+          }`}>
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#E7E7DF] shrink-0">
+            <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${
+              isAnya ? 'border-[#E7C8CF]' : 'border-[#E7E7DF]'
+            }`}>
               <div className="flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-[#004B68]" />
-                <h3 id="address-modal-title" className="text-lg font-bold text-[#004B68]">
-                  Delivery Address Details
+                <MapPin className={`w-5 h-5 ${isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#181818]' : 'text-[#004B68]'}`} />
+                <h3 id="address-modal-title" className={`text-lg font-bold ${
+                  isAnya ? 'text-[#2F2326] font-serif' : isAtelier ? 'text-[#141414] font-serif' : 'text-[#004B68]'
+                }`}>
+                  {isAnya ? 'Anya Studio Delivery Address' : isAtelier ? 'Shipping Address Details' : 'Delivery Address Details'}
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setIsAddressModalOpen(false)}
-                className="p-1.5 text-[#626B69] hover:text-[#172126] rounded-lg hover:bg-[#F2F3ED] transition-colors"
+                className={`p-1.5 rounded-lg transition-colors ${
+                  isAnya ? 'text-[#6F5B60] hover:text-[#2F2326] hover:bg-[#FFF4F6]' : 'text-[#626B69] hover:text-[#172126] hover:bg-[#F2F3ED]'
+                }`}
                 aria-label="Close address modal"
               >
                 <X className="w-5 h-5" />
@@ -1108,7 +1318,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                 <div>
                   <label
                     htmlFor="addr-recipient-name"
-                    className="block text-xs font-semibold text-[#172126] mb-1"
+                    className={`block text-xs font-semibold mb-1 ${isAnya ? 'text-[#2F2326]' : 'text-[#172126]'}`}
                   >
                     Recipient Full Name <span className="text-red-500">*</span>
                   </label>
@@ -1120,8 +1330,14 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                       setDraftAddress({ ...draftAddress, recipientName: e.target.value })
                     }
                     placeholder="e.g. Ramesh Kumar"
-                    className={`w-full px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm text-[#172126] bg-[#FAFAF6] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#53B847] ${
-                      addressErrors.recipientName ? 'border-red-500' : 'border-[#E7E7DF]'
+                    className={`w-full px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm text-[#172126] bg-[#FAFAF6] focus:bg-white focus:outline-none focus:ring-2 ${
+                      isAnya
+                        ? 'focus:ring-[#8FA08C]'
+                        : isAtelier
+                        ? 'focus:ring-[#181818]'
+                        : 'focus:ring-[#53B847]'
+                    } ${
+                      addressErrors.recipientName ? 'border-red-500' : isAnya ? 'border-[#E7C8CF]' : 'border-[#E7E7DF]'
                     }`}
                   />
                   {addressErrors.recipientName && (
@@ -1135,7 +1351,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                 <div>
                   <label
                     htmlFor="addr-phone"
-                    className="block text-xs font-semibold text-[#172126] mb-1"
+                    className={`block text-xs font-semibold mb-1 ${isAnya ? 'text-[#2F2326]' : 'text-[#172126]'}`}
                   >
                     Contact Mobile Number <span className="text-red-500">*</span>
                   </label>
@@ -1155,8 +1371,14 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                         })
                       }
                       placeholder="98432 12345"
-                      className={`w-full pl-11 pr-3.5 py-2.5 rounded-xl border text-xs sm:text-sm text-[#172126] bg-[#FAFAF6] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#53B847] ${
-                        addressErrors.phone ? 'border-red-500' : 'border-[#E7E7DF]'
+                      className={`w-full pl-11 pr-3.5 py-2.5 rounded-xl border text-xs sm:text-sm text-[#172126] bg-[#FAFAF6] focus:bg-white focus:outline-none focus:ring-2 ${
+                        isAnya
+                          ? 'focus:ring-[#8FA08C]'
+                          : isAtelier
+                          ? 'focus:ring-[#181818]'
+                          : 'focus:ring-[#53B847]'
+                      } ${
+                        addressErrors.phone ? 'border-red-500' : isAnya ? 'border-[#E7C8CF]' : 'border-[#E7E7DF]'
                       }`}
                     />
                   </div>
@@ -1172,7 +1394,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
               <div>
                 <label
                   htmlFor="addr-house"
-                  className="block text-xs font-semibold text-[#172126] mb-1"
+                  className={`block text-xs font-semibold mb-1 ${isAnya ? 'text-[#2F2326]' : 'text-[#172126]'}`}
                 >
                   Flat, House No., Apartment or Building <span className="text-red-500">*</span>
                 </label>
@@ -1184,8 +1406,14 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                     setDraftAddress({ ...draftAddress, houseFlat: e.target.value })
                   }
                   placeholder="e.g. Flat 3B, Sri Krishna Apartments"
-                  className={`w-full px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm text-[#172126] bg-[#FAFAF6] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#53B847] ${
-                    addressErrors.houseFlat ? 'border-red-500' : 'border-[#E7E7DF]'
+                  className={`w-full px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm text-[#172126] bg-[#FAFAF6] focus:bg-white focus:outline-none focus:ring-2 ${
+                    isAnya
+                      ? 'focus:ring-[#8FA08C]'
+                      : isAtelier
+                      ? 'focus:ring-[#181818]'
+                      : 'focus:ring-[#53B847]'
+                  } ${
+                    addressErrors.houseFlat ? 'border-red-500' : isAnya ? 'border-[#E7C8CF]' : 'border-[#E7E7DF]'
                   }`}
                 />
                 {addressErrors.houseFlat && (
@@ -1199,7 +1427,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
               <div>
                 <label
                   htmlFor="addr-street"
-                  className="block text-xs font-semibold text-[#172126] mb-1"
+                  className={`block text-xs font-semibold mb-1 ${isAnya ? 'text-[#2F2326]' : 'text-[#172126]'}`}
                 >
                   Street, Cross Road, or Colony <span className="text-red-500">*</span>
                 </label>
@@ -1211,8 +1439,14 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                     setDraftAddress({ ...draftAddress, street: e.target.value })
                   }
                   placeholder="e.g. 4th Cross, Gandhi Park Main Road"
-                  className={`w-full px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm text-[#172126] bg-[#FAFAF6] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#53B847] ${
-                    addressErrors.street ? 'border-red-500' : 'border-[#E7E7DF]'
+                  className={`w-full px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm text-[#172126] bg-[#FAFAF6] focus:bg-white focus:outline-none focus:ring-2 ${
+                    isAnya
+                      ? 'focus:ring-[#8FA08C]'
+                      : isAtelier
+                      ? 'focus:ring-[#181818]'
+                      : 'focus:ring-[#53B847]'
+                  } ${
+                    addressErrors.street ? 'border-red-500' : isAnya ? 'border-[#E7C8CF]' : 'border-[#E7E7DF]'
                   }`}
                 />
                 {addressErrors.street && (
@@ -1227,7 +1461,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                 <div>
                   <label
                     htmlFor="addr-area"
-                    className="block text-xs font-semibold text-[#172126] mb-1"
+                    className={`block text-xs font-semibold mb-1 ${isAnya ? 'text-[#2F2326]' : 'text-[#172126]'}`}
                   >
                     Locality / Area <span className="text-red-500">*</span>
                   </label>
@@ -1244,7 +1478,11 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                         pincode: selectedLoc ? selectedLoc.pincode : draftAddress.pincode,
                       });
                     }}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E7E7DF] text-xs sm:text-sm text-[#172126] bg-[#FAFAF6] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#53B847]"
+                    className={`w-full px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm text-[#172126] bg-[#FAFAF6] focus:bg-white focus:outline-none focus:ring-2 ${
+                      isAnya
+                        ? 'border-[#E7C8CF] focus:ring-[#8FA08C]'
+                        : 'border-[#E7E7DF] focus:ring-[#53B847]'
+                    }`}
                   >
                     {AVAILABLE_LOCATIONS.map((loc) => (
                       <option key={loc.pincode} value={loc.area}>
@@ -1257,7 +1495,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                 <div>
                   <label
                     htmlFor="addr-pincode"
-                    className="block text-xs font-semibold text-[#172126] mb-1"
+                    className={`block text-xs font-semibold mb-1 ${isAnya ? 'text-[#2F2326]' : 'text-[#172126]'}`}
                   >
                     Postal PIN Code <span className="text-red-500">*</span>
                   </label>
@@ -1273,8 +1511,14 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                       })
                     }
                     placeholder="641007"
-                    className={`w-full px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm text-[#172126] bg-[#FAFAF6] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#53B847] ${
-                      addressErrors.pincode ? 'border-red-500' : 'border-[#E7E7DF]'
+                    className={`w-full px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm text-[#172126] bg-[#FAFAF6] focus:bg-white focus:outline-none focus:ring-2 ${
+                      isAnya
+                        ? 'focus:ring-[#8FA08C]'
+                        : isAtelier
+                        ? 'focus:ring-[#181818]'
+                        : 'focus:ring-[#53B847]'
+                    } ${
+                      addressErrors.pincode ? 'border-red-500' : isAnya ? 'border-[#E7C8CF]' : 'border-[#E7E7DF]'
                     }`}
                   />
                   {addressErrors.pincode && (
@@ -1290,7 +1534,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                 <div>
                   <label
                     htmlFor="addr-landmark"
-                    className="block text-xs font-semibold text-[#172126] mb-1"
+                    className={`block text-xs font-semibold mb-1 ${isAnya ? 'text-[#2F2326]' : 'text-[#172126]'}`}
                   >
                     Nearby Landmark (Optional)
                   </label>
@@ -1302,14 +1546,18 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                       setDraftAddress({ ...draftAddress, landmark: e.target.value })
                     }
                     placeholder="e.g. Opposite Pillayar Temple"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E7E7DF] text-xs sm:text-sm text-[#172126] bg-[#FAFAF6] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#53B847]"
+                    className={`w-full px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm text-[#172126] bg-[#FAFAF6] focus:bg-white focus:outline-none focus:ring-2 ${
+                      isAnya
+                        ? 'border-[#E7C8CF] focus:ring-[#8FA08C]'
+                        : 'border-[#E7E7DF] focus:ring-[#53B847]'
+                    }`}
                   />
                 </div>
 
                 <div>
                   <label
                     htmlFor="addr-instructions"
-                    className="block text-xs font-semibold text-[#172126] mb-1"
+                    className={`block text-xs font-semibold mb-1 ${isAnya ? 'text-[#2F2326]' : 'text-[#172126]'}`}
                   >
                     Delivery Instructions (Optional)
                   </label>
@@ -1324,30 +1572,46 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                       })
                     }
                     placeholder="e.g. Leave with security"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E7E7DF] text-xs sm:text-sm text-[#172126] bg-[#FAFAF6] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#53B847]"
+                    className={`w-full px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm text-[#172126] bg-[#FAFAF6] focus:bg-white focus:outline-none focus:ring-2 ${
+                      isAnya
+                        ? 'border-[#E7C8CF] focus:ring-[#8FA08C]'
+                        : 'border-[#E7E7DF] focus:ring-[#53B847]'
+                    }`}
                   />
                 </div>
               </div>
 
-              <div className="pt-2 text-[11px] text-[#626B69]">
+              <div className={`pt-2 text-[11px] ${isAnya ? 'text-[#6F5B60]' : 'text-[#626B69]'}`}>
                 <span>
                   Note: Address details are kept in your checkout session and will connect to customer profile storage in the next phase.
                 </span>
               </div>
 
               {/* Action buttons */}
-              <div className="pt-4 border-t border-[#E7E7DF] flex items-center justify-end gap-3">
+              <div className={`pt-4 border-t flex items-center justify-end gap-3 ${
+                isAnya ? 'border-[#E7C8CF]' : 'border-[#E7E7DF]'
+              }`}>
                 <button
                   type="button"
                   onClick={() => setIsAddressModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl border border-[#E7E7DF] text-xs font-bold text-[#626B69] hover:bg-[#F2F3ED] transition-colors"
+                  className={`px-4 py-2.5 rounded-xl border text-xs font-bold transition-colors ${
+                    isAnya
+                      ? 'border-[#E7C8CF] text-[#6F5B60] hover:bg-[#FFF4F6]'
+                      : 'border-[#E7E7DF] text-[#626B69] hover:bg-[#F2F3ED]'
+                  }`}
                 >
                   Cancel
                 </button>
                 <button
                   id="checkout-save-address-btn"
                   type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-[#004B68] hover:bg-[#00384e] text-white text-xs font-bold transition-colors shadow-xs"
+                  className={`px-6 py-2.5 rounded-xl text-white text-xs font-bold transition-colors shadow-xs ${
+                    isAnya
+                      ? 'bg-[#2F2326] hover:bg-[#4A3B3E] rounded-[12px]'
+                      : isAtelier
+                      ? 'bg-[#181818] hover:bg-black'
+                      : 'bg-[#004B68] hover:bg-[#00384e]'
+                  }`}
                 >
                   Save Address
                 </button>

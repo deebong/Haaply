@@ -24,7 +24,11 @@ import { useActiveStore } from './providers/StoreProvider';
 import { AtelierHeader } from './themes/fashion/AtelierHeader';
 import { AtelierHomepage } from './themes/fashion/AtelierHomepage';
 import { AtelierFooter } from './themes/fashion/AtelierFooter';
+import { AnyaHeader } from './themes/anyasoaps/AnyaHeader';
+import { AnyaHomepage } from './themes/anyasoaps/AnyaHomepage';
+import { AnyaFooter } from './themes/anyasoaps/AnyaFooter';
 import { FASHION_PRODUCTS, FASHION_CATEGORIES } from './data/fashionDemoData';
+import { ANYA_PRODUCTS, ANYA_CATEGORIES } from './data/anyaSoapsData';
 import {
   PRODUCTS,
   CATEGORIES,
@@ -52,16 +56,21 @@ export default function App() {
   const { provider } = useDataProvider();
   const { theme, setThemeId } = useTheme();
   const isAtelier = activeStore.vertical === 'fashion' || activeStore.id === 'store-atelier';
+  const isAnya = activeStore.vertical === 'beauty' || activeStore.id === 'store-anyasoaps';
 
   // Load catalog scoped strictly to active StoreInstance
   const [products, setProducts] = useState<Product[]>(() => {
-    return activeStore.id === 'store-atelier' ? FASHION_PRODUCTS : PRODUCTS;
+    if (activeStore.id === 'store-atelier') return FASHION_PRODUCTS;
+    if (activeStore.id === 'store-anyasoaps') return ANYA_PRODUCTS;
+    return PRODUCTS;
   });
   const [categories, setCategories] = useState<Category[]>(() => {
-    return activeStore.id === 'store-atelier' ? FASHION_CATEGORIES : CATEGORIES;
+    if (activeStore.id === 'store-atelier') return FASHION_CATEGORIES;
+    if (activeStore.id === 'store-anyasoaps') return ANYA_CATEGORIES;
+    return CATEGORIES;
   });
   const [mealIntents, setMealIntents] = useState<MealIntent[]>(() => {
-    return activeStore.id === 'store-atelier' ? [] : MEAL_INTENTS;
+    return activeStore.id === 'store-haaply' ? MEAL_INTENTS : [];
   });
 
   // Active products, categories, and catalog are strictly the active store's data
@@ -75,6 +84,10 @@ export default function App() {
     if (activeStore.id === 'store-atelier') {
       setProducts(FASHION_PRODUCTS);
       setCategories(FASHION_CATEGORIES);
+      setMealIntents([]);
+    } else if (activeStore.id === 'store-anyasoaps') {
+      setProducts(ANYA_PRODUCTS);
+      setCategories(ANYA_CATEGORIES);
       setMealIntents([]);
     } else {
       setProducts(PRODUCTS);
@@ -113,10 +126,14 @@ export default function App() {
     'store-atelier': {
       'atelier-linen-overshirt:linen-overshirt-sand-m': 1, // Pre-loaded fashion item
     },
+    'store-anyasoaps': {
+      'anya-goat-milk-soap:anya-goat-milk-100g': 1, // Pre-loaded Anya artisan soap
+    },
   });
   const [wishlistByStore, setWishlistByStore] = useState<Record<string, Set<string>>>({
     'store-haaply': new Set(['prod-idli-batter', 'prod-fresh-paneer']),
     'store-atelier': new Set(['atelier-linen-overshirt', 'atelier-silk-shirt']),
+    'store-anyasoaps': new Set(['anya-goat-milk-soap', 'anya-rose-shea-butter']),
   });
 
   const cartMap = useMemo(() => {
@@ -326,6 +343,16 @@ export default function App() {
           onNavigate={navigate}
           currentPath={currentPath}
         />
+      ) : isAnya ? (
+        <AnyaHeader
+          cartCount={totalCartCount}
+          wishlistCount={wishlistSet.size}
+          onOpenCart={() => setIsCartOpen(true)}
+          onOpenSearch={() => setIsSearchOpen(true)}
+          onOpenAccount={() => setIsAccountOpen(true)}
+          onNavigate={navigate}
+          currentPath={currentPath}
+        />
       ) : (
         <>
           <Header
@@ -484,8 +511,24 @@ export default function App() {
           </main>
         )}
 
+        {/* HOMEPAGE: ANYA SOAPS BEAUTY STOREFRONT */}
+        {route.type === 'home' && isAnya && (
+          <main className="flex-1">
+            <AnyaHomepage
+              products={activeProducts}
+              categories={activeCategories}
+              cartMap={cartMap}
+              wishlistSet={wishlistSet}
+              onAddToCart={handleAddToCart}
+              onUpdateQuantity={handleUpdateQuantity}
+              onToggleWishlist={handleToggleWishlist}
+              onNavigate={navigate}
+            />
+          </main>
+        )}
+
         {/* DEFAULT: HOMEPAGE (All original sections preserved for Grocery) */}
-        {route.type === 'home' && !isAtelier && (
+        {route.type === 'home' && !isAtelier && !isAnya && (
           <main className="flex-1 space-y-10 sm:space-y-14 md:space-y-16 lg:space-y-20">
             {/* 3. HERO / PRIMARY DISCOVERY */}
             <Hero
@@ -721,6 +764,8 @@ export default function App() {
       {/* 9. FOOTER */}
       {isAtelier ? (
         <AtelierFooter onNavigate={navigate} />
+      ) : isAnya ? (
+        <AnyaFooter onNavigate={navigate} />
       ) : (
         <Footer
           onLinkClick={(slug) => {
@@ -736,7 +781,7 @@ export default function App() {
       )}
 
       {/* 10. MOBILE BOTTOM NAVIGATION BAR (Visible on mobile screens <md for Grocery) */}
-      {!isAtelier && (
+      {!isAtelier && !isAnya && (
         <MobileBottomNav
           activeNav={activeNav}
           onNavClick={(nav) => {
@@ -834,11 +879,15 @@ export default function App() {
               }}
               className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                 isActive
-                  ? (st.id === 'store-atelier' ? 'bg-[#181818] text-white shadow-xs' : 'bg-[#53B847] text-white shadow-xs')
+                  ? (st.id === 'store-atelier'
+                      ? 'bg-[#181818] text-white shadow-xs'
+                      : st.id === 'store-anyasoaps'
+                      ? 'bg-[#2F2326] text-white shadow-xs'
+                      : 'bg-[#53B847] text-white shadow-xs')
                   : 'hover:bg-[#F2F3ED] text-[#626B69]'
               }`}
             >
-              {st.name} ({st.vertical === 'grocery' ? 'Grocery' : 'Fashion'})
+              {st.name} ({st.vertical === 'grocery' ? 'Grocery' : st.vertical === 'beauty' ? 'Beauty' : 'Fashion'})
             </button>
           );
         })}

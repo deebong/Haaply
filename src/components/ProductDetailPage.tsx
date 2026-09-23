@@ -10,6 +10,7 @@ import {
 } from '../utils/productUtils';
 import { useTheme } from '../providers/ThemeProvider';
 import { AtelierProductDetailPage } from '../themes/fashion/AtelierProductDetailPage';
+import { AnyaProductDetailPage } from '../themes/anyasoaps/AnyaProductDetailPage';
 
 interface ProductDetailPageProps {
   productId: string;
@@ -43,9 +44,31 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   }, [products, productId]);
 
   // If active theme uses editorial fashion PDP, render AtelierProductDetailPage
-  if (product && (theme.id === 'atelier' || theme.capabilities?.pdpStyle === 'editorial-gallery')) {
+  if (product && (theme.id === 'atelier' || (theme.capabilities?.pdpStyle === 'editorial-gallery' && theme.id !== 'anyasoaps'))) {
     return (
       <AtelierProductDetailPage
+        product={product}
+        onBack={() => onNavigate('/shop')}
+        onAddToCart={(prod, v, qty = 1) => {
+          for (let i = 0; i < qty; i++) {
+            onAddToCart(prod, v);
+          }
+        }}
+        onProductClick={(pId) => onNavigate(`/product/${pId}`)}
+        onToggleWishlist={(pId) => {
+          const found = products.find((p) => p.id === pId);
+          if (found) onToggleWishlist(found);
+        }}
+        isWishlisted={wishlistSet.has(product.id)}
+        allProducts={products}
+      />
+    );
+  }
+
+  // If active theme is Anya Soaps, render AnyaProductDetailPage
+  if (product && theme.id === 'anyasoaps') {
+    return (
+      <AnyaProductDetailPage
         product={product}
         onBack={() => onNavigate('/shop')}
         onAddToCart={(prod, v, qty = 1) => {

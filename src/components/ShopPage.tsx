@@ -5,6 +5,7 @@ import { ProductCard } from './ProductCard';
 import { SortDropdown, SortOption } from './SortDropdown';
 import { getProductQuantityInCart } from '../utils/productUtils';
 import { useTheme } from '../providers/ThemeProvider';
+import { useActiveStore } from '../providers/StoreProvider';
 
 interface ShopPageProps {
   products: Product[];
@@ -34,7 +35,9 @@ export const ShopPage: React.FC<ShopPageProps> = ({
   initialSearchQuery,
 }) => {
   const { theme } = useTheme();
-  const isAtelier = theme.id === 'atelier';
+  const { activeStore } = useActiveStore();
+  const isAtelier = theme.id === 'atelier' || activeStore.vertical === 'fashion';
+  const isAnya = theme.id === 'anyasoaps' || activeStore.vertical === 'beauty';
 
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery || '');
   const [selectedCategorySlug, setSelectedCategorySlug] = useState<string>(initialCategory || 'all');
@@ -62,6 +65,9 @@ export const ShopPage: React.FC<ShopPageProps> = ({
           if (isAtelier) {
             const hasNewSeason = product.tags?.some((t) => t.toLowerCase().includes('new') || t.toLowerCase().includes('season'));
             if (!hasNewSeason) return false;
+          } else if (isAnya) {
+            const isBotanical = product.tags?.some((t) => t.toLowerCase().includes('signature') || t.toLowerCase().includes('natural') || t.toLowerCase().includes('bestseller'));
+            if (!isBotanical) return false;
           } else {
             if (!product.isFreshToday) return false;
           }
@@ -89,7 +95,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
         if (sortBy === 'name-asc') return a.name.localeCompare(b.name);
         return 0; // featured retains original catalog order
       });
-  }, [products, selectedCategorySlug, freshOnly, inStockOnly, searchQuery, sortBy, isAtelier]);
+  }, [products, selectedCategorySlug, freshOnly, inStockOnly, searchQuery, sortBy, isAtelier, isAnya]);
 
   const activeFilterCount = (freshOnly ? 1 : 0) + (inStockOnly ? 1 : 0) + (selectedCategorySlug !== 'all' ? 1 : 0);
 
@@ -115,19 +121,27 @@ export const ShopPage: React.FC<ShopPageProps> = ({
             type="button"
             onClick={() => onNavigate('/')}
             className={`transition-colors focus:outline-none ${
-              isAtelier ? 'hover:text-[#181818] tracking-wider uppercase font-medium text-[11px]' : 'hover:text-[#004B68]'
+              isAnya
+                ? 'hover:text-[#2F2326]'
+                : isAtelier
+                ? 'hover:text-[#181818] tracking-wider uppercase font-medium text-[11px]'
+                : 'hover:text-[#004B68]'
             }`}
           >
-            {isAtelier ? 'Atelier' : 'Home'}
+            {isAnya ? 'Anya Soaps' : isAtelier ? 'Atelier' : 'Home'}
           </button>
           <span>/</span>
-          <span className={`font-semibold ${isAtelier ? 'text-[#181818] tracking-wider uppercase text-[11px]' : 'text-[#172126]'}`}>
-            {isAtelier ? 'Collection' : 'Shop'}
+          <span className={`font-semibold ${
+            isAnya ? 'text-[#2F2326]' : isAtelier ? 'text-[#181818] tracking-wider uppercase text-[11px]' : 'text-[#172126]'
+          }`}>
+            {isAnya ? 'Artisans' : isAtelier ? 'Collection' : 'Shop'}
           </span>
           {currentCategoryObj && (
             <>
               <span>/</span>
-              <span className={`font-medium ${isAtelier ? 'text-[#8C7355] tracking-wider uppercase text-[11px]' : 'text-[#004B68]'}`}>
+              <span className={`font-medium ${
+                isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#8C7355] tracking-wider uppercase text-[11px]' : 'text-[#004B68]'
+              }`}>
                 {currentCategoryObj.name}
               </span>
             </>
@@ -138,23 +152,31 @@ export const ShopPage: React.FC<ShopPageProps> = ({
           <div>
             <span
               className={`inline-block text-[11px] font-bold uppercase tracking-wider mb-0.5 sm:mb-1 ${
-                isAtelier ? 'text-[#8C7355] tracking-[0.2em] font-medium' : 'text-[#53B847]'
+                isAnya
+                  ? 'text-[#8FA08C]'
+                  : isAtelier
+                  ? 'text-[#8C7355] tracking-[0.2em] font-medium'
+                  : 'text-[#53B847]'
               }`}
             >
-              {isAtelier ? "Autumn / Winter '25 Edition" : 'Complete Fresh Market'}
+              {isAnya ? 'Small-Batch Botanical Workshop' : isAtelier ? "Autumn / Winter '25 Edition" : 'Complete Fresh Market'}
             </span>
             <h1
               className={`tracking-tight ${
-                isAtelier
+                isAnya
+                  ? 'text-3xl sm:text-4xl md:text-5xl font-bold text-[#2F2326] font-serif'
+                  : isAtelier
                   ? 'text-3xl sm:text-4xl md:text-5xl font-light text-[#141414] font-serif'
                   : 'text-2xl sm:text-3xl md:text-4xl font-bold text-[#004B68]'
               }`}
-              style={isAtelier ? { fontFamily: "'Playfair Display', Georgia, serif" } : undefined}
+              style={isAnya ? { fontFamily: "'Urbanist', 'Playfair Display', Georgia, serif" } : isAtelier ? { fontFamily: "'Playfair Display', Georgia, serif" } : undefined}
             >
-              {isAtelier ? 'All Garments & Objects' : 'Shop All Foods'}
+              {isAnya ? 'All Handcrafted Soaps & Elixirs' : isAtelier ? 'All Garments & Objects' : 'Shop All Foods'}
             </h1>
-            <p className={`text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed ${isAtelier ? 'text-[#767676]' : 'text-[#626B69]'}`}>
-              {isAtelier
+            <p className={`text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed ${isAnya ? 'text-[#6F5B60]' : isAtelier ? 'text-[#767676]' : 'text-[#626B69]'}`}>
+              {isAnya
+                ? 'Hand-stirred cold-process soaps, pure herbal bathing powders, and rich plant-butter balms crafted with zero chemicals.'
+                : isAtelier
                 ? 'Curated contemporary silhouettes crafted from certified Belgian linen, Japanese selvedge twill, and Australian fine merino wool.'
                 : 'Everyday batters, heirloom millets, fresh sevai, and staples prepared fresh every morning in Coimbatore.'}
             </p>
@@ -166,10 +188,14 @@ export const ShopPage: React.FC<ShopPageProps> = ({
               type="button"
               onClick={() => onNavigate(`/category/${currentCategoryObj.slug}`)}
               className={`inline-flex items-center gap-1.5 text-xs font-semibold self-start md:self-auto py-1 transition-colors ${
-                isAtelier ? 'text-[#181818] hover:text-[#8C7355] uppercase tracking-wider text-[11px]' : 'text-[#004B68] hover:text-[#53B847]'
+                isAnya
+                  ? 'text-[#2F2326] hover:text-[#8FA08C]'
+                  : isAtelier
+                  ? 'text-[#181818] hover:text-[#8C7355] uppercase tracking-wider text-[11px]'
+                  : 'text-[#004B68] hover:text-[#53B847]'
               }`}
             >
-              <span>View {currentCategoryObj.name} lookbook</span>
+              <span>View {currentCategoryObj.name} collection</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           )}
@@ -179,19 +205,27 @@ export const ShopPage: React.FC<ShopPageProps> = ({
       {/* 2. SEARCH BAR */}
       <div className="relative mb-4 sm:mb-5">
         <div className="relative flex items-center w-full max-w-2xl">
-          <Search className="w-4 h-4 sm:w-5 sm:h-5 text-[#626B69] absolute left-3.5 pointer-events-none" />
+          <Search className={`w-4 h-4 sm:w-5 sm:h-5 absolute left-3.5 pointer-events-none ${
+            isAnya ? 'text-[#8FA08C]' : 'text-[#626B69]'
+          }`} />
           <input
             id="shop-search-input"
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={
-              isAtelier
+              isAnya
+                ? 'Search botanical soaps, ingredients (e.g. red wine, charcoal, goat milk)...'
+                : isAtelier
                 ? 'Search collection (e.g. linen overshirt, wool gabardine, trousers)...'
                 : 'Search all products (e.g. dosa batter, paneer, ragi, chapathi)...'
             }
-            className={`w-full pl-10 sm:pl-11 pr-10 py-2.5 sm:py-3 text-sm bg-white rounded-xl border border-[#E7E7DF] text-[#172126] placeholder-[#626B69] shadow-xs focus:outline-none transition-all ${
-              isAtelier ? 'focus:border-[#141414] focus:ring-1 focus:ring-[#141414]' : 'focus:border-[#53B847] focus:ring-1 focus:ring-[#53B847]'
+            className={`w-full pl-10 sm:pl-11 pr-10 py-2.5 sm:py-3 text-sm bg-white rounded-xl border text-[#172126] placeholder-[#626B69] shadow-xs focus:outline-none transition-all ${
+              isAnya
+                ? 'border-[#E7C8CF] focus:border-[#8FA08C] focus:ring-1 focus:ring-[#8FA08C]'
+                : isAtelier
+                ? 'border-[#E7E7DF] focus:border-[#141414] focus:ring-1 focus:ring-[#141414]'
+                : 'border-[#E7E7DF] focus:border-[#53B847] focus:ring-1 focus:ring-[#53B847]'
             }`}
           />
           {searchQuery && (
@@ -216,16 +250,24 @@ export const ShopPage: React.FC<ShopPageProps> = ({
             onClick={() => setSelectedCategorySlug('all')}
             className={`shrink-0 px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-150 min-h-[40px] flex items-center gap-1.5 focus:outline-none ${
               selectedCategorySlug === 'all'
-                ? isAtelier
+                ? isAnya
+                  ? 'bg-[#2F2326] text-white shadow-xs'
+                  : isAtelier
                   ? 'bg-[#181818] text-white shadow-xs'
                   : 'bg-[#004B68] text-white shadow-xs'
+                : isAnya
+                ? 'bg-white text-[#6F5B60] hover:text-[#2F2326] border border-[#E7C8CF] hover:border-[#8FA08C]'
                 : 'bg-white text-[#626B69] hover:text-[#172126] border border-[#E7E7DF] hover:border-[#141414]'
             }`}
           >
-            <span>{isAtelier ? 'All Pieces' : 'All Items'}</span>
+            <span>{isAnya ? 'All Artisans' : isAtelier ? 'All Pieces' : 'All Items'}</span>
             <span
               className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                selectedCategorySlug === 'all' ? 'bg-white/20 text-white' : 'bg-[#F2F3ED] text-[#626B69]'
+                selectedCategorySlug === 'all'
+                  ? 'bg-white/20 text-white'
+                  : isAnya
+                  ? 'bg-[#FFF4F6] text-[#8FA08C]'
+                  : 'bg-[#F2F3ED] text-[#626B69]'
               }`}
             >
               {products.length}
@@ -245,16 +287,24 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                 onClick={() => setSelectedCategorySlug(isSelected ? 'all' : cat.slug)}
                 className={`shrink-0 px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-150 min-h-[40px] flex items-center gap-1.5 focus:outline-none ${
                   isSelected
-                    ? isAtelier
+                    ? isAnya
+                      ? 'bg-[#2F2326] text-white shadow-xs'
+                      : isAtelier
                       ? 'bg-[#181818] text-white shadow-xs'
                       : 'bg-[#004B68] text-white shadow-xs'
+                    : isAnya
+                    ? 'bg-white text-[#6F5B60] hover:text-[#2F2326] border border-[#E7C8CF] hover:border-[#8FA08C]'
                     : 'bg-white text-[#626B69] hover:text-[#172126] border border-[#E7E7DF] hover:border-[#141414]'
                 }`}
               >
                 <span>{cat.name}</span>
                 <span
                   className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                    isSelected ? 'bg-white/20 text-white' : 'bg-[#F2F3ED] text-[#626B69]'
+                    isSelected
+                      ? 'bg-white/20 text-white'
+                      : isAnya
+                      ? 'bg-[#FFF4F6] text-[#8FA08C]'
+                      : 'bg-[#F2F3ED] text-[#626B69]'
                   }`}
                 >
                   {catItemCount}
@@ -266,7 +316,9 @@ export const ShopPage: React.FC<ShopPageProps> = ({
       </div>
 
       {/* 4. FILTER & SORT CONTROLS BAR */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 sm:p-4 bg-white rounded-2xl border border-[#E7E7DF] mb-5 sm:mb-6 shadow-xs">
+      <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 sm:p-4 bg-white rounded-2xl border mb-5 sm:mb-6 shadow-xs ${
+        isAnya ? 'border-[#E7C8CF]' : 'border-[#E7E7DF]'
+      }`}>
         {/* Row 1 on mobile / Left group on desktop: Quick Filter Toggles */}
         <div className="flex items-center gap-2 flex-wrap">
           {/* Quick Season / Fresh Toggle */}
@@ -275,18 +327,22 @@ export const ShopPage: React.FC<ShopPageProps> = ({
             onClick={() => setFreshOnly(!freshOnly)}
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors focus:outline-none min-h-[36px] sm:min-h-0 ${
               freshOnly
-                ? isAtelier
+                ? isAnya
+                  ? 'bg-[#2F2326] text-white'
+                  : isAtelier
                   ? 'bg-[#181818] text-white'
                   : 'bg-[#53B847] text-white'
+                : isAnya
+                ? 'bg-[#FFF4F6] text-[#6F5B60] hover:text-[#2F2326]'
                 : 'bg-[#F2F3ED] text-[#626B69] hover:text-[#172126] hover:bg-[#E7E7DF]'
             }`}
           >
             <span
               className={`w-1.5 h-1.5 rounded-full ${
-                freshOnly ? 'bg-white' : isAtelier ? 'bg-[#8C7355]' : 'bg-[#53B847]'
+                freshOnly ? 'bg-white' : isAnya ? 'bg-[#8FA08C]' : isAtelier ? 'bg-[#8C7355]' : 'bg-[#53B847]'
               }`}
             />
-            <span className="whitespace-nowrap">{isAtelier ? 'New Season' : 'Fresh Today'}</span>
+            <span className="whitespace-nowrap">{isAnya ? 'Signature Soaps' : isAtelier ? 'New Season' : 'Fresh Today'}</span>
           </button>
 
           {/* In Stock Toggle */}
@@ -295,9 +351,13 @@ export const ShopPage: React.FC<ShopPageProps> = ({
             onClick={() => setInStockOnly(!inStockOnly)}
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors focus:outline-none min-h-[36px] sm:min-h-0 ${
               inStockOnly
-                ? isAtelier
+                ? isAnya
+                  ? 'bg-[#2F2326] text-white'
+                  : isAtelier
                   ? 'bg-[#181818] text-white'
                   : 'bg-[#004B68] text-white'
+                : isAnya
+                ? 'bg-[#FFF4F6] text-[#6F5B60] hover:text-[#2F2326]'
                 : 'bg-[#F2F3ED] text-[#626B69] hover:text-[#172126] hover:bg-[#E7E7DF]'
             }`}
           >
@@ -317,9 +377,11 @@ export const ShopPage: React.FC<ShopPageProps> = ({
         </div>
 
         {/* Row 2 on mobile / Right group on desktop: Count & Sort */}
-        <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto pt-2.5 sm:pt-0 border-t border-[#E7E7DF]/70 sm:border-t-0">
-          <span className="text-xs text-[#626B69] whitespace-nowrap">
-            Showing <strong className="text-[#172126]">{filteredProducts.length}</strong> {filteredProducts.length === 1 ? 'item' : 'items'}
+        <div className={`flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto pt-2.5 sm:pt-0 border-t sm:border-t-0 ${
+          isAnya ? 'border-[#E7C8CF]/70' : 'border-[#E7E7DF]/70'
+        }`}>
+          <span className={`text-xs whitespace-nowrap ${isAnya ? 'text-[#6F5B60]' : 'text-[#626B69]'}`}>
+            Showing <strong className={isAnya ? 'text-[#2F2326]' : 'text-[#172126]'}>{filteredProducts.length}</strong> {filteredProducts.length === 1 ? (isAnya ? 'soap' : 'item') : (isAnya ? 'soaps' : 'items')}
           </span>
 
           <SortDropdown value={sortBy} onChange={setSortBy} />
@@ -328,12 +390,16 @@ export const ShopPage: React.FC<ShopPageProps> = ({
 
       {/* 5. COMPLETE PRODUCT GRID */}
       {filteredProducts.length === 0 ? (
-        <div className="text-center py-16 px-4 bg-white rounded-2xl border border-[#E7E7DF] my-4">
-          <div className="w-12 h-12 rounded-full bg-[#F2F3ED] flex items-center justify-center mx-auto mb-3 text-[#626B69]">
+        <div className={`text-center py-16 px-4 bg-white rounded-2xl border my-4 ${
+          isAnya ? 'border-[#E7C8CF]' : 'border-[#E7E7DF]'
+        }`}>
+          <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 ${
+            isAnya ? 'bg-[#FFF4F6] text-[#8FA08C]' : 'bg-[#F2F3ED] text-[#626B69]'
+          }`}>
             <Search className="w-6 h-6" />
           </div>
-          <h3 className="text-base sm:text-lg font-bold text-[#172126]">No products found</h3>
-          <p className="text-xs sm:text-sm text-[#626B69] mt-1 max-w-md mx-auto">
+          <h3 className={`text-base sm:text-lg font-bold ${isAnya ? 'text-[#2F2326]' : 'text-[#172126]'}`}>No products found</h3>
+          <p className={`text-xs sm:text-sm mt-1 max-w-md mx-auto ${isAnya ? 'text-[#6F5B60]' : 'text-[#626B69]'}`}>
             {searchQuery
               ? `We couldn't find any products matching "${searchQuery}". Try a different search term or reset filters.`
               : 'No products match the selected filters.'}
@@ -342,7 +408,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
             type="button"
             onClick={clearAllFilters}
             className={`mt-4 px-4 py-2 text-xs font-semibold text-white rounded-xl transition-colors focus:outline-none ${
-              isAtelier ? 'bg-[#181818] hover:bg-black' : 'bg-[#53B847] hover:bg-[#469e3c]'
+              isAnya ? 'bg-[#2F2326] hover:bg-[#4A3B3E] rounded-[10px]' : isAtelier ? 'bg-[#181818] hover:bg-black' : 'bg-[#53B847] hover:bg-[#469e3c]'
             }`}
           >
             Clear all filters

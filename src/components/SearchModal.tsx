@@ -38,6 +38,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
   const { theme } = useTheme();
   const { activeStore } = useActiveStore();
   const isAtelier = theme.id === 'atelier' || activeStore.vertical === 'fashion';
+  const isAnya = theme.id === 'anyasoaps' || activeStore.vertical === 'beauty';
 
   // Centralized scroll-lock: locks document scroll, handles mobile touch, and supports Escape key
   useScrollLock(isOpen, onClose);
@@ -62,7 +63,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
       className="fixed inset-0 z-50 flex items-start justify-center pt-4 sm:pt-16 px-3 sm:px-4"
       role="dialog"
       aria-modal="true"
-      aria-label={isAtelier ? 'Search fashion collections' : 'Search fresh products'}
+      aria-label={isAnya ? 'Search artisan soaps' : isAtelier ? 'Search fashion collections' : 'Search fresh products'}
     >
       <div
         className="fixed inset-0 bg-[#172126]/40 backdrop-blur-xs transition-opacity touch-none"
@@ -70,23 +71,31 @@ export const SearchModal: React.FC<SearchModalProps> = ({
         aria-hidden="true"
       />
 
-      <div className="relative w-full max-w-4xl bg-white rounded-[18px] sm:rounded-[22px] shadow-2xl border border-[#E7E7DF] overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] sm:max-h-[85vh] flex flex-col">
+      <div className={`relative w-full max-w-4xl bg-white rounded-[18px] sm:rounded-[22px] shadow-2xl border overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] sm:max-h-[85vh] flex flex-col ${
+        isAnya ? 'border-[#E7C8CF]' : 'border-[#E7E7DF]'
+      }`}>
         {/* Search Input Bar */}
-        <form onSubmit={handleSubmit} className="p-3.5 sm:p-5 border-b border-[#E7E7DF] flex items-center gap-2.5 sm:gap-3 m-0 shrink-0">
-          <Search className={`w-5 h-5 shrink-0 ${isAtelier ? 'text-[#181818]' : 'text-[#53B847]'}`} />
+        <form onSubmit={handleSubmit} className={`p-3.5 sm:p-5 border-b flex items-center gap-2.5 sm:gap-3 m-0 shrink-0 ${
+          isAnya ? 'border-[#E7C8CF] bg-[#FFF4F6]/30' : 'border-[#E7E7DF]'
+        }`}>
+          <Search className={`w-5 h-5 shrink-0 ${
+            isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'
+          }`} />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={placeholderText}
             autoFocus
-            className="w-full text-base sm:text-lg bg-transparent border-none outline-none text-[#172126] placeholder-[#626B69]"
+            className={`w-full text-base sm:text-lg bg-transparent border-none outline-none placeholder-[#8E7A7E] ${
+              isAnya ? 'text-[#2F2326]' : 'text-[#172126]'
+            }`}
           />
           {query && (
             <button
               type="button"
               onClick={() => setQuery('')}
-              className="p-1 text-[#626B69] hover:text-[#172126]"
+              className={`p-1 ${isAnya ? 'text-[#6F5B60] hover:text-[#2F2326]' : 'text-[#626B69] hover:text-[#172126]'}`}
               aria-label="Clear search query"
             >
               <X className="w-4 h-4" />
@@ -95,7 +104,11 @@ export const SearchModal: React.FC<SearchModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 text-[#626B69] hover:text-[#172126] rounded-lg hover:bg-[#F2F3ED]"
+            className={`p-1.5 rounded-lg ${
+              isAnya
+                ? 'text-[#6F5B60] hover:text-[#2F2326] hover:bg-[#FDECEF]'
+                : 'text-[#626B69] hover:text-[#172126] hover:bg-[#F2F3ED]'
+            }`}
             aria-label="Close search"
           >
             <X className="w-5 h-5" />
@@ -103,19 +116,27 @@ export const SearchModal: React.FC<SearchModalProps> = ({
         </form>
 
         {/* Quick suggestions chips (Popular Searches) */}
-        <div className="w-full shrink-0 bg-[#FAFAF6] border-b border-[#E7E7DF]/70">
+        <div className={`w-full shrink-0 border-b ${
+          isAnya ? 'bg-[#FFF8FA] border-[#E7C8CF]/70' : 'bg-[#FAFAF6] border-[#E7E7DF]/70'
+        }`}>
           <div
             data-modal-scrollable="horizontal"
             className="w-full overflow-x-auto scrollbar-none touch-pan-x overscroll-x-contain py-2.5 sm:py-3"
           >
             <div className="flex items-center gap-2 sm:gap-2.5 px-3.5 sm:px-5 w-max min-w-full">
-              <span className="text-[#626B69] shrink-0 text-xs font-medium select-none pr-0.5">Popular:</span>
+              <span className={`shrink-0 text-xs font-medium select-none pr-0.5 ${
+                isAnya ? 'text-[#6F5B60]' : 'text-[#626B69]'
+              }`}>Popular:</span>
               {popularSearches.map((tag) => (
                 <button
                   key={tag}
                   type="button"
                   onClick={() => setQuery(tag)}
-                  className="px-3 py-1.5 bg-white hover:bg-[#F2F3ED] text-[#172126] rounded-lg border border-[#E7E7DF] text-xs font-medium shrink-0 transition-colors whitespace-nowrap shadow-xs active:scale-95"
+                  className={`px-3 py-1.5 text-xs font-medium shrink-0 transition-colors whitespace-nowrap shadow-xs active:scale-95 ${
+                    isAnya
+                      ? 'bg-white hover:bg-[#FFF4F6] text-[#2F2326] rounded-[8px] border border-[#E7C8CF] hover:border-[#8FA08C]'
+                      : 'bg-white hover:bg-[#F2F3ED] text-[#172126] rounded-lg border border-[#E7E7DF]'
+                  }`}
                 >
                   {tag}
                 </button>
@@ -132,18 +153,22 @@ export const SearchModal: React.FC<SearchModalProps> = ({
           className="p-3.5 sm:p-6 overflow-y-auto flex-1 min-h-0 overscroll-contain"
         >
           <div className="flex items-center justify-between mb-3 sm:mb-4">
-            <span className="text-xs font-semibold uppercase tracking-wider text-[#626B69]">
-              {query ? `Found ${filteredProducts.length} items` : (isAtelier ? 'Curated Selection' : 'Fresh Recommendations')}
+            <span className={`text-xs font-semibold uppercase tracking-wider ${
+              isAnya ? 'text-[#8FA08C]' : 'text-[#626B69]'
+            }`}>
+              {query ? `Found ${filteredProducts.length} items` : (isAnya ? 'Artisan Recommendations' : isAtelier ? 'Curated Selection' : 'Fresh Recommendations')}
             </span>
           </div>
 
           {filteredProducts.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-sm font-semibold text-[#172126]">
+              <p className={`text-sm font-semibold ${isAnya ? 'text-[#2F2326]' : 'text-[#172126]'}`}>
                 No items match "{query}"
               </p>
-              <p className="text-xs text-[#626B69] mt-1">
-                {isAtelier
+              <p className={`text-xs mt-1 ${isAnya ? 'text-[#6F5B60]' : 'text-[#626B69]'}`}>
+                {isAnya
+                  ? 'Try searching for "goat milk", "shea butter", "turmeric", or "charcoal".'
+                  : isAtelier
                   ? 'Try searching for "coat", "silk", "knitwear", or "trouser".'
                   : 'Try searching for "batter", "sevai", or "paneer".'}
               </p>

@@ -33,6 +33,9 @@ export function getPopularSearchTerms(vertical: string, isAtelier: boolean = fal
   if (vertical === 'fashion' || isAtelier) {
     return ['Double-Breasted Coat', 'Silk Shirt', 'Linen Trousers', 'Merino Knit', 'Trench', 'Oatmeal'];
   }
+  if (vertical === 'beauty') {
+    return ['Goat Milk Soap', 'Charcoal Detox', 'Rose & Shea', 'Turmeric Glow', 'Avarampoo Calm', 'Baby Mild'];
+  }
   return ['Dosa Batter', 'Idli Batter', 'Ragi Sevai', 'Chapathi', 'Fresh Paneer', 'Millet'];
 }
 
@@ -42,6 +45,9 @@ export function getPopularSearchTerms(vertical: string, isAtelier: boolean = fal
 export function getSearchPlaceholder(vertical: string, isAtelier: boolean = false): string {
   if (vertical === 'fashion' || isAtelier) {
     return 'Search tailored coats, silk shirts, knitwear...';
+  }
+  if (vertical === 'beauty') {
+    return 'Search artisan soaps, cold-pressed oils, botanicals...';
   }
   return 'Search fresh batters, millets, paneer...';
 }

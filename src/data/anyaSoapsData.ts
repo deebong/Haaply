@@ -1,0 +1,528 @@
+import { Product, Category, BeautyProductAttributes } from '../types';
+
+/**
+ * Anya Soaps Product Catalog & Beauty Vertical Data
+ *
+ * Scoped strictly to the Anya Soaps Store Instance (`store-anyasoaps`).
+ * Features authentic artisan cold-process soaps, rich plant butters,
+ * botanical extracts, and organic skincare attributes.
+ */
+
+export const ANYA_CATEGORIES: Category[] = [
+  {
+    id: 'cat-nourishing-hydrating',
+    name: 'Nourishing & Hydrating',
+    slug: 'nourishing-hydrating',
+    image: 'https://images.unsplash.com/photo-1584305574647-0cc949a2bb9f?auto=format&fit=crop&w=800&q=80',
+    tagline: 'Deeply moisturizing formulas enriched with farm-fresh goat milk and raw African shea butter',
+    itemCount: 2,
+  },
+  {
+    id: 'cat-clarifying-purifying',
+    name: 'Clarifying & Purifying',
+    slug: 'clarifying-purifying',
+    image: 'https://images.unsplash.com/photo-1607006555318-a9f8a1aa0a9a?auto=format&fit=crop&w=800&q=80',
+    tagline: 'Activated charcoal and French clays to draw out deep impurities and balance excess oils',
+    itemCount: 1,
+  },
+  {
+    id: 'cat-brightening-tone',
+    name: 'Brightening & Radiance',
+    slug: 'brightening-tone',
+    image: 'https://images.unsplash.com/photo-1661185152130-4214a30ced36?auto=format&fit=crop&w=800&q=80',
+    tagline: 'Wild Kasturi turmeric and sweet citrus to restore luminous tone and even texture',
+    itemCount: 1,
+  },
+  {
+    id: 'cat-soothing-calming',
+    name: 'Soothing & Calming',
+    slug: 'soothing-calming',
+    image: 'https://images.unsplash.com/photo-1600857544200-b2f666a9a2ec?auto=format&fit=crop&w=800&q=80',
+    tagline: 'Avarampoo golden wildflowers and French lavender for evening relaxation and barrier calm',
+    itemCount: 1,
+  },
+  {
+    id: 'cat-gentle-baby-safe',
+    name: 'Gentle & Baby Safe',
+    slug: 'gentle-baby-safe',
+    image: 'https://images.unsplash.com/photo-1584305574219-59849682fdc1?auto=format&fit=crop&w=800&q=80',
+    tagline: 'Unscented, zero-essential-oil pure virgin coconut oil soaps formulated for the most delicate skin',
+    itemCount: 1,
+  },
+];
+
+export const ANYA_PRODUCTS: Product[] = [
+  {
+    id: 'anya-goat-milk-soap',
+    name: 'Goat Milk Soap',
+    category: 'Nourishing & Hydrating',
+    categorySlug: 'nourishing-hydrating',
+    packSize: '100g Bar',
+    price: 280,
+    originalPrice: 320,
+    image: 'https://images.unsplash.com/photo-1584305574647-0cc949a2bb9f?auto=format&fit=crop&w=1200&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1584305574647-0cc949a2bb9f?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1607006483224-73ce0729e22a?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1584305574219-59849682fdc1?auto=format&fit=crop&w=1200&q=80',
+    ],
+    description:
+      'Deeply moisturizing and gentle, perfect for sensitive or dry skin that needs an extra layer of natural hydration. Formulated with farm-fresh goat milk rich in lactic acid and natural vitamin A.',
+    stockStatus: 'in_stock',
+    stockCount: 42,
+    tags: ['Goat Milk', 'Sensitive Skin', 'Hydrating', 'Dry Skin', 'Bestseller'],
+    variants: [
+      {
+        id: 'anya-goat-milk-100g',
+        productId: 'anya-goat-milk-soap',
+        label: '100g Single Bar',
+        packSize: '100g',
+        price: 280,
+        originalPrice: 320,
+        sku: 'ANYA-GM-100',
+        stockStatus: 'in_stock',
+        stockCount: 42,
+        isDefault: true,
+        options: { weight: '100g' },
+      },
+      {
+        id: 'anya-goat-milk-bundle2',
+        productId: 'anya-goat-milk-soap',
+        label: 'Duo Pack (2 x 100g)',
+        packSize: '200g',
+        price: 520,
+        originalPrice: 640,
+        sku: 'ANYA-GM-200',
+        stockStatus: 'in_stock',
+        stockCount: 20,
+        isDefault: false,
+        options: { weight: '200g (2 Bars)' },
+      },
+    ],
+    verticalAttributes: {
+      skinType: ['Dry', 'Sensitive', 'Eczema-Prone', 'Normal'],
+      benefits: ['Deep Lasting Hydration', 'Gentle Non-Stripping Cleanse', 'Moisture Barrier Support', 'Soothes Dry Flakiness'],
+      ingredients: ['Farm-Fresh Goat Milk', 'Cold-Pressed Virgin Coconut Oil', 'Raw Unrefined Shea Butter', 'Extra Virgin Olive Oil', 'Castor Oil'],
+      fragrance: 'Soft Cream (Naturally Unscented)',
+      soapType: 'Cold Process Artisan Bar',
+      weight: '100g / 3.5 oz',
+      usageInstructions: 'Work up a creamy lather between damp hands or with a sisal soap saver pouch. Gently massage over face and body. Rinse clean with warm water.',
+      careInstructions: 'Keep dry between uses in a well-draining wooden or ceramic soap dish to ensure the bar lasts 4+ weeks.',
+      suitableFor: 'Daily face and body wash for whole family, particularly dry & delicate skin.',
+    } as BeautyProductAttributes,
+  },
+  {
+    id: 'anya-charcoal-detox',
+    name: 'Charcoal Detox Soap',
+    category: 'Clarifying & Purifying',
+    categorySlug: 'clarifying-purifying',
+    packSize: '100g Bar',
+    price: 295,
+    originalPrice: 340,
+    image: 'https://images.unsplash.com/photo-1607006555318-a9f8a1aa0a9a?auto=format&fit=crop&w=1200&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1607006555318-a9f8a1aa0a9a?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1661185152130-4214a30ced36?auto=format&fit=crop&w=1200&q=80',
+    ],
+    description:
+      'Draws out impurities and clarifies pores for a fresh, balanced complexion. Activated steam-activated coconut shell charcoal binds to excess sebum, environmental dirt, and dead cellular debris.',
+    stockStatus: 'in_stock',
+    stockCount: 36,
+    tags: ['Charcoal', 'Detox', 'Oily Skin', 'Acne Care', 'Clarifying'],
+    variants: [
+      {
+        id: 'anya-charcoal-100g',
+        productId: 'anya-charcoal-detox',
+        label: '100g Single Bar',
+        packSize: '100g',
+        price: 295,
+        originalPrice: 340,
+        sku: 'ANYA-CD-100',
+        stockStatus: 'in_stock',
+        stockCount: 36,
+        isDefault: true,
+        options: { weight: '100g' },
+      },
+      {
+        id: 'anya-charcoal-bundle2',
+        productId: 'anya-charcoal-detox',
+        label: 'Duo Pack (2 x 100g)',
+        packSize: '200g',
+        price: 550,
+        originalPrice: 680,
+        sku: 'ANYA-CD-200',
+        stockStatus: 'in_stock',
+        stockCount: 15,
+        isDefault: false,
+        options: { weight: '200g (2 Bars)' },
+      },
+    ],
+    verticalAttributes: {
+      skinType: ['Oily', 'Combination', 'Acne-Prone', 'Congested Pores'],
+      benefits: ['Purifies Deep Pores', 'Controls Excess Shine', 'Mild Mineral Exfoliation', 'Restores Clarified Complexion'],
+      ingredients: ['Activated Coconut Charcoal', 'Organic Tea Tree Essential Oil', 'Cold-Pressed Virgin Coconut Oil', 'Bentonite Clay', 'Raw Shea Butter'],
+      fragrance: 'Crisp Australian Tea Tree & Fresh Herbal notes',
+      soapType: 'Cold Process Clarifying Bar',
+      weight: '100g / 3.5 oz',
+      usageInstructions: 'Lather with warm water, apply with gentle upward circular strokes across the T-zone and congested areas, then rinse thoroughly.',
+      careInstructions: 'Store elevated on a slotted soap dock to maintain firmness between daily uses.',
+      suitableFor: 'Daily face cleansing for oily and acne-prone skin; clarifying weekly body cleanse.',
+    } as BeautyProductAttributes,
+  },
+  {
+    id: 'anya-rose-shea-butter',
+    name: 'Rose & Shea Butter Soap',
+    category: 'Nourishing & Hydrating',
+    categorySlug: 'nourishing-hydrating',
+    packSize: '100g Bar',
+    price: 310,
+    originalPrice: 360,
+    image: 'https://images.unsplash.com/photo-1607006483224-73ce0729e22a?auto=format&fit=crop&w=1200&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1607006483224-73ce0729e22a?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1584305574647-0cc949a2bb9f?auto=format&fit=crop&w=1200&q=80',
+    ],
+    description:
+      'A luxurious velvety lather infused with pure steam-distilled Damask rose petal extract and high-linoleic raw shea butter. Promotes smooth, supple skin elasticity and seals moisture in after cleansing.',
+    stockStatus: 'in_stock',
+    stockCount: 28,
+    tags: ['Rose', 'Shea Butter', 'Velvet Lather', 'Floral', 'Nourishing'],
+    variants: [
+      {
+        id: 'anya-rose-100g',
+        productId: 'anya-rose-shea-butter',
+        label: '100g Single Bar',
+        packSize: '100g',
+        price: 310,
+        originalPrice: 360,
+        sku: 'ANYA-RSB-100',
+        stockStatus: 'in_stock',
+        stockCount: 28,
+        isDefault: true,
+        options: { weight: '100g' },
+      },
+      {
+        id: 'anya-rose-bundle2',
+        productId: 'anya-rose-shea-butter',
+        label: 'Duo Pack (2 x 100g)',
+        packSize: '200g',
+        price: 580,
+        originalPrice: 720,
+        sku: 'ANYA-RSB-200',
+        stockStatus: 'in_stock',
+        stockCount: 12,
+        isDefault: false,
+        options: { weight: '200g (2 Bars)' },
+      },
+    ],
+    verticalAttributes: {
+      skinType: ['Normal', 'Dry', 'Mature', 'Dull'],
+      benefits: ['Velvety Silky Finish', 'Restores Natural Elasticity', 'Rich Aromatherapeutic Floral Lather', 'Non-Drying'],
+      ingredients: ['Damask Rose Petal Extract', 'Unrefined Fair-Trade Shea Butter', 'Cold-Pressed Sweet Almond Oil', 'French Pink Clay', 'Geranium Essential Oil'],
+      fragrance: 'Warm Damask Rose & Soothing Geranium',
+      soapType: 'Cold Process Conditioning Bar',
+      weight: '100g / 3.5 oz',
+      usageInstructions: 'Glide directly over wet skin to produce a dense, creamy lather. Inhale the natural floral aroma, then rinse with warm water.',
+      careInstructions: 'Keep in an open soap saver so excess moisture evaporates naturally.',
+      suitableFor: 'Everyday pampering body bath and gentle morning facial cleanser.',
+    } as BeautyProductAttributes,
+  },
+  {
+    id: 'anya-turmeric-glow',
+    name: 'Turmeric Glow Soap',
+    category: 'Brightening & Radiance',
+    categorySlug: 'brightening-tone',
+    packSize: '100g Bar',
+    price: 290,
+    originalPrice: 330,
+    image: 'https://images.unsplash.com/photo-1661185152130-4214a30ced36?auto=format&fit=crop&w=1200&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1661185152130-4214a30ced36?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1607006555318-a9f8a1aa0a9a?auto=format&fit=crop&w=1200&q=80',
+    ],
+    description:
+      'Packed with natural curcumin antioxidants and cold-pressed sesame oil to help brighten uneven pigmentation, diminish tan lines, and revive the skin’s radiant morning glow.',
+    stockStatus: 'in_stock',
+    stockCount: 31,
+    tags: ['Turmeric', 'Glow', 'Brightening', 'Even Tone', 'Antioxidant'],
+    variants: [
+      {
+        id: 'anya-turmeric-100g',
+        productId: 'anya-turmeric-glow',
+        label: '100g Single Bar',
+        packSize: '100g',
+        price: 290,
+        originalPrice: 330,
+        sku: 'ANYA-TG-100',
+        stockStatus: 'in_stock',
+        stockCount: 31,
+        isDefault: true,
+        options: { weight: '100g' },
+      },
+      {
+        id: 'anya-turmeric-bundle2',
+        productId: 'anya-turmeric-glow',
+        label: 'Duo Pack (2 x 100g)',
+        packSize: '200g',
+        price: 540,
+        originalPrice: 660,
+        sku: 'ANYA-TG-200',
+        stockStatus: 'in_stock',
+        stockCount: 14,
+        isDefault: false,
+        options: { weight: '200g (2 Bars)' },
+      },
+    ],
+    verticalAttributes: {
+      skinType: ['Dull Skin', 'Sun-Exposed', 'Hyperpigmentation', 'Normal to Oily'],
+      benefits: ['Promotes Even Skin Tone', 'Natural Curcumin Antioxidants', 'Gentle Warm Cleansing', 'Revives Skin Luster'],
+      ingredients: ['Wild Kasturi Manjal (Aromatic Turmeric)', 'Cold-Pressed Black Sesame Oil', 'Raw Golden Cocoa Butter', 'Sweet Orange Peel Oil', 'Sun-Dried Kaolin Clay'],
+      fragrance: 'Warm Sweet Orange & Ground Earthy Botanicals',
+      soapType: 'Cold Process Radiance Bar',
+      weight: '100g / 3.5 oz',
+      usageInstructions: 'Lather well, massage over face and exposed arms/neck for 30–60 seconds, then rinse with cool water.',
+      careInstructions: 'Rest on a draining soap mat away from direct water spray.',
+      suitableFor: 'Ideal daily morning cleanser for face and body.',
+    } as BeautyProductAttributes,
+  },
+  {
+    id: 'anya-avarampoo-calm',
+    name: 'Avarampoo Calm Soap',
+    category: 'Soothing & Calming',
+    categorySlug: 'soothing-calming',
+    packSize: '100g Bar',
+    price: 320,
+    originalPrice: 380,
+    image: 'https://images.unsplash.com/photo-1600857544200-b2f666a9a2ec?auto=format&fit=crop&w=1200&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1600857544200-b2f666a9a2ec?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1584305574647-0cc949a2bb9f?auto=format&fit=crop&w=1200&q=80',
+    ],
+    description:
+      'Handcrafted using traditional sun-dried Avarampoo (Senna Auriculata) golden petals, prized in South Indian herbal skincare for calming heated skin, relieving sun sensitivity, and cooling the body.',
+    stockStatus: 'in_stock',
+    stockCount: 24,
+    tags: ['Avarampoo', 'Herbal', 'Calming', 'Sensitive Skin', 'Cooling'],
+    variants: [
+      {
+        id: 'anya-avarampoo-100g',
+        productId: 'anya-avarampoo-calm',
+        label: '100g Single Bar',
+        packSize: '100g',
+        price: 320,
+        originalPrice: 380,
+        sku: 'ANYA-AC-100',
+        stockStatus: 'in_stock',
+        stockCount: 24,
+        isDefault: true,
+        options: { weight: '100g' },
+      },
+      {
+        id: 'anya-avarampoo-bundle2',
+        productId: 'anya-avarampoo-calm',
+        label: 'Duo Pack (2 x 100g)',
+        packSize: '200g',
+        price: 600,
+        originalPrice: 760,
+        sku: 'ANYA-AC-200',
+        stockStatus: 'in_stock',
+        stockCount: 10,
+        isDefault: false,
+        options: { weight: '200g (2 Bars)' },
+      },
+    ],
+    verticalAttributes: {
+      skinType: ['Sensitive', 'Sunburned', 'Tired & Heated Skin', 'All Skin Types'],
+      benefits: ['Cooling Botanical Relief', 'Calms Redness & Irritation', 'Gentle Restorative Cleanse', 'Promotes Skin Peace'],
+      ingredients: ['Wild Avarampoo (Senna Auriculata) Flowers', 'Cold-Pressed Virgin Coconut Oil', 'Fresh Aloe Vera Leaf Gel', 'French Lavender Essential Oil', 'Golden Jojoba Seed Oil'],
+      fragrance: 'Subtle Golden Wildflower & Soft French Lavender',
+      soapType: 'Cold Process Botanical Bar',
+      weight: '100g / 3.5 oz',
+      usageInstructions: 'Create a rich soothing lather with water. Gently cleanse body and face, allowing the cooling botanicals to comfort the skin before rinsing.',
+      careInstructions: 'Allow to drain dry completely between uses.',
+      suitableFor: 'Perfect evening relaxation bath ritual and post-sun cleansing.',
+    } as BeautyProductAttributes,
+  },
+  {
+    id: 'anya-coconut-mild',
+    name: 'Coconut Mild Soap',
+    category: 'Gentle & Baby Safe',
+    categorySlug: 'gentle-baby-safe',
+    packSize: '100g Bar',
+    price: 260,
+    originalPrice: 300,
+    image: 'https://images.unsplash.com/photo-1584305574219-59849682fdc1?auto=format&fit=crop&w=1200&q=80',
+    images: [
+      'https://images.unsplash.com/photo-1584305574219-59849682fdc1?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1607006483224-73ce0729e22a?auto=format&fit=crop&w=1200&q=80',
+    ],
+    description:
+      'The gentlest artisan bar imaginable. Crafted with 100% pure cold-pressed coconut oil, rich mango butter, and pure distilled water. 100% fragrance-free, dye-free, and essential-oil-free for newborn and hyper-reactive skin.',
+    stockStatus: 'in_stock',
+    stockCount: 38,
+    tags: ['Baby Safe', 'Unscented', 'Hypoallergenic', 'Zero Fragrance', 'Ultra-Mild'],
+    variants: [
+      {
+        id: 'anya-coco-100g',
+        productId: 'anya-coconut-mild',
+        label: '100g Single Bar',
+        packSize: '100g',
+        price: 260,
+        originalPrice: 300,
+        sku: 'ANYA-CM-100',
+        stockStatus: 'in_stock',
+        stockCount: 38,
+        isDefault: true,
+        options: { weight: '100g' },
+      },
+      {
+        id: 'anya-coco-bundle2',
+        productId: 'anya-coconut-mild',
+        label: 'Duo Pack (2 x 100g)',
+        packSize: '200g',
+        price: 480,
+        originalPrice: 600,
+        sku: 'ANYA-CM-200',
+        stockStatus: 'in_stock',
+        stockCount: 16,
+        isDefault: false,
+        options: { weight: '200g (2 Bars)' },
+      },
+    ],
+    verticalAttributes: {
+      skinType: ['Delicate Infant & Baby Skin', 'Hypersensitive Skin', 'Fragrance-Reactive', 'Extremely Dry'],
+      benefits: ['Zero Synthetic Additives', 'Pure Botanical Cleansing', 'Maintains Delicate Lipids', 'Gentle on Eyes and Skin'],
+      ingredients: ['Cold-Pressed Virgin Coconut Oil', 'Pure Castor Seed Oil', 'Raw Mango Seed Butter', 'Triple-Purified Distilled Water'],
+      fragrance: 'Purely Unscented (100% Free of Fragrance & Essential Oils)',
+      soapType: 'Cold Process Baby & Sensitive Bar',
+      weight: '100g / 3.5 oz',
+      usageInstructions: 'Lather with a soft baby washcloth or in clean hands. Gently wash delicate skin and rinse with lukewarm water.',
+      careInstructions: 'Keep in a dry, ventilated location on a draining dish between bath times.',
+      suitableFor: 'Newborns, babies, pregnant mothers, and individuals with fragrance allergies.',
+    } as BeautyProductAttributes,
+  },
+];
+
+export const ANYA_SIGNATURE_COLLECTION_IDS = [
+  'anya-goat-milk-soap',
+  'anya-charcoal-detox',
+  'anya-rose-shea-butter',
+  'anya-turmeric-glow',
+  'anya-avarampoo-calm',
+  'anya-coconut-mild',
+];
+
+export const ANYA_BESTSELLERS_IDS = [
+  'anya-goat-milk-soap',
+  'anya-turmeric-glow',
+  'anya-rose-shea-butter',
+];
+
+export interface AnyaTestimonial {
+  id: string;
+  initials: string;
+  name: string;
+  location: string;
+  product: string;
+  customerSince: string;
+  quote: string;
+  accentQuote: string;
+  stars: number;
+}
+
+export const ANYA_TESTIMONIALS: AnyaTestimonial[] = [
+  {
+    id: 'test-1',
+    initials: 'PS',
+    name: 'Priya S.',
+    location: 'Coimbatore',
+    product: 'Goat Milk Soap',
+    customerSince: 'Customer Since 2023',
+    quote: '“My skin has never felt this soft. Switching to the Goat Milk soap was ',
+    accentQuote: 'the best decision.',
+    stars: 5,
+  },
+  {
+    id: 'test-2',
+    initials: 'MT',
+    name: 'Meera T.',
+    location: 'Bangalore',
+    product: 'Rose & Shea Butter',
+    customerSince: 'Customer Since 2022',
+    quote: '“I’ve tried so many natural brands, but none have felt this luxurious. The lather is incredibly rich and it smells beautifully fresh.”',
+    accentQuote: '',
+    stars: 5,
+  },
+  {
+    id: 'test-3',
+    initials: 'KL',
+    name: 'Kavita L.',
+    location: 'Chennai',
+    product: 'Turmeric Glow Soap',
+    customerSince: 'Customer Since 2024',
+    quote: '“The Turmeric Glow completely cleared my dry patches and uneven tone. It’s gentle enough for my face and perfect for daily use.”',
+    accentQuote: '',
+    stars: 5,
+  },
+  {
+    id: 'test-4',
+    initials: 'DM',
+    name: 'Deepika M.',
+    location: 'Hyderabad',
+    product: 'Avarampoo Calm Soap',
+    customerSince: 'Customer Since 2023',
+    quote: '“Their Avarampoo Calm made my evening showers the best part of the day. It is incredibly soothing and the quality is outstanding.”',
+    accentQuote: '',
+    stars: 5,
+  },
+  {
+    id: 'test-5',
+    initials: 'AR',
+    name: 'Ananya R.',
+    location: 'Mumbai',
+    product: 'Charcoal Detox Soap',
+    customerSince: 'Customer Since 2024',
+    quote: '“The Charcoal Detox feels so refreshing. It cleans deep into the pores without that squeaky, stripped feeling you get from commercial soap.”',
+    accentQuote: '',
+    stars: 5,
+  },
+  {
+    id: 'test-6',
+    initials: 'SP',
+    name: 'Sneha P.',
+    location: 'Kochi',
+    product: 'Coconut Mild Soap',
+    customerSince: 'Customer Since 2023',
+    quote: '“The Coconut Mild soap is perfect for my little one. Absolutely zero irritation, pure ingredients, and total peace of mind for a mother.”',
+    accentQuote: '',
+    stars: 5,
+  },
+];
+
+export interface AnyaFaqItem {
+  question: string;
+  answer: string;
+}
+
+export const ANYA_FAQS: AnyaFaqItem[] = [
+  {
+    question: 'Are your soaps 100% vegan?',
+    answer:
+      'Almost all of our soaps are entirely plant-based and vegan, except for our Goat Milk Soap which utilizes farm-fresh goat milk for high lactic acid content. Each product page lists full ingredients clearly.',
+  },
+  {
+    question: 'How long does one artisan bar last?',
+    answer:
+      'With proper care (keeping the soap dry between uses using a well-draining wooden or ceramic dish), a standard 100g bar typically lasts 3 to 4 weeks with daily shower use.',
+  },
+  {
+    question: 'Do you use artificial fragrances or synthetic dyes?',
+    answer:
+      'No. We strictly use pure therapeutic essential oils, steam-distilled botanical extracts, and natural earth clays for scent and color. We never use phthalates, synthetic perfumes, or harsh foaming sulfates.',
+  },
+  {
+    question: 'Can I use these soaps on my face?',
+    answer:
+      'Yes! Our cold-process formulations retain natural vegetable glycerin and have a gentle, skin-friendly pH balance. Our Charcoal Detox and Turmeric Glow soaps are especially popular for daily facial cleansing routines.',
+  },
+];

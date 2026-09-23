@@ -96,11 +96,39 @@ export const FASHION_VERTICAL: VerticalDefinition = {
 };
 
 /**
+ * Beauty, Artisan Soaps & Skincare Vertical Definition
+ */
+export const BEAUTY_VERTICAL: VerticalDefinition = {
+  id: 'beauty',
+  name: 'Handcrafted Skincare & Beauty',
+  description: 'Artisan cold-process soaps, organic botanical skincare, and mindful self-care rituals',
+  defaultVariantOptionLabel: 'Weight',
+  unitOfMeasureType: 'weight_volume',
+  capabilities: {
+    supportsWeightVariants: true,
+    supportsSizeVariants: false,
+    supportsColorVariants: false,
+    supportsMultiAxisVariants: false,
+    supportsMultipleImages: true,
+    supportsProductGallery: true,
+    supportsNutrition: false,
+    supportsIngredients: true,
+    supportsFreshnessInfo: false,
+    supportsStorageInstructions: true,
+    supportsRecipes: false,
+    supportsDeliverySlots: false,
+    supportsClothingAttributes: false,
+    supportsSizeChart: false,
+  },
+};
+
+/**
  * Centralized Store Vertical Registry
  */
 export const VERTICAL_REGISTRY: Record<string, VerticalDefinition> = {
   grocery: GROCERY_VERTICAL,
   fashion: FASHION_VERTICAL,
+  beauty: BEAUTY_VERTICAL,
 };
 
 /**

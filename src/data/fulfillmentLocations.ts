@@ -95,3 +95,28 @@ export const ATELIER_FULFILLMENT_LOCATIONS: FulfillmentLocation[] = [
   },
 ];
 
+/**
+ * Fulfillment Locations for Anya Soaps Storefront (Artisan Skincare / Coimbatore Studio)
+ */
+export const ANYA_FULFILLMENT_LOCATIONS: FulfillmentLocation[] = [
+  {
+    id: 'loc-anya-studio',
+    storeId: 'store-anyasoaps',
+    name: 'Anya Soaps Botanical Artisan Studio',
+    type: 'production_unit',
+    address: {
+      street: '28 Thillai Nagar, Gandhi Park Road',
+      area: 'RS Puram East',
+      city: 'Coimbatore',
+      pincode: '641002',
+      state: 'Tamil Nadu',
+    },
+    serviceAreas: ['641001', '641002', '641003', '641004', '641018'],
+    operatingHours: {
+      openTime: '09:00',
+      closeTime: '19:00',
+    },
+    active: true,
+  },
+];
+

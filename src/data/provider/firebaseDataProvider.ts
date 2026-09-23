@@ -29,10 +29,17 @@ import {
   FASHION_NEW_ARRIVALS_IDS,
   FASHION_BESTSELLERS_IDS,
 } from '../fashionDemoData';
+import {
+  ANYA_PRODUCTS,
+  ANYA_CATEGORIES,
+  ANYA_SIGNATURE_COLLECTION_IDS,
+  ANYA_BESTSELLERS_IDS,
+} from '../anyaSoapsData';
 import { DEFAULT_SITE_CONFIG, SiteConfig } from '../../config/siteConfig';
 import {
   DEFAULT_FULFILLMENT_LOCATIONS,
   ATELIER_FULFILLMENT_LOCATIONS,
+  ANYA_FULFILLMENT_LOCATIONS,
 } from '../fulfillmentLocations';
 
 /**
@@ -104,6 +111,24 @@ export class FirebaseDataProvider implements DataProvider {
         landmark: 'Near Bangalore Club',
       },
     },
+    'store-anyasoaps': {
+      id: 'cust-anya-001',
+      storeId: 'store-anyasoaps',
+      name: 'Priya Sundaram',
+      phone: '9840123456',
+      email: 'priya@anyasoaps.com',
+      defaultAddress: {
+        storeId: 'store-anyasoaps',
+        recipientName: 'Priya Sundaram',
+        phone: '9840123456',
+        houseFlat: 'No. 14, Lotus Villa',
+        street: 'Avinashi Road',
+        area: 'Peelamedu',
+        city: 'Coimbatore',
+        pincode: '641004',
+        landmark: 'Near PSG College',
+      },
+    },
   };
 
   private addresses: CheckoutAddress[] = [];
@@ -111,6 +136,7 @@ export class FirebaseDataProvider implements DataProvider {
   private wishlistByStore: Record<string, Set<string>> = {
     'store-haaply': new Set(['prod-idli-batter', 'prod-fresh-paneer']),
     'store-atelier': new Set(['atelier-linen-overshirt', 'atelier-silk-shirt']),
+    'store-anyasoaps': new Set(['anya-goat-milk-soap', 'anya-rose-shea-butter']),
   };
 
   constructor() {
@@ -134,7 +160,12 @@ export class FirebaseDataProvider implements DataProvider {
 
   async getProducts(filters?: ProductFilterOptions): Promise<Product[]> {
     const targetStoreId = filters?.storeId || 'store-haaply';
-    let result = targetStoreId === 'store-atelier' ? [...FASHION_PRODUCTS] : [...PRODUCTS];
+    let result =
+      targetStoreId === 'store-atelier'
+        ? [...FASHION_PRODUCTS]
+        : targetStoreId === 'store-anyasoaps'
+        ? [...ANYA_PRODUCTS]
+        : [...PRODUCTS];
 
     if (filters?.categorySlug) {
       result = result.filter((p) => p.categorySlug === filters.categorySlug);
@@ -170,6 +201,9 @@ export class FirebaseDataProvider implements DataProvider {
     if (storeId === 'store-atelier') {
       return FASHION_PRODUCTS.find((p) => p.id === id) || null;
     }
+    if (storeId === 'store-anyasoaps') {
+      return ANYA_PRODUCTS.find((p) => p.id === id) || null;
+    }
     if (storeId === 'store-haaply') {
       return PRODUCTS.find((p) => p.id === id) || null;
     }
@@ -178,6 +212,7 @@ export class FirebaseDataProvider implements DataProvider {
     return (
       PRODUCTS.find((p) => p.id === id) ||
       FASHION_PRODUCTS.find((p) => p.id === id) ||
+      ANYA_PRODUCTS.find((p) => p.id === id) ||
       null
     );
   }
@@ -186,11 +221,14 @@ export class FirebaseDataProvider implements DataProvider {
     if (storeId === 'store-atelier') {
       return [...FASHION_CATEGORIES];
     }
+    if (storeId === 'store-anyasoaps') {
+      return [...ANYA_CATEGORIES];
+    }
     return [...CATEGORIES];
   }
 
   async getMealIntents(storeId?: string): Promise<MealIntent[]> {
-    if (storeId === 'store-atelier') {
+    if (storeId === 'store-atelier' || storeId === 'store-anyasoaps') {
       return [];
     }
     return [...MEAL_INTENTS];
@@ -201,6 +239,12 @@ export class FirebaseDataProvider implements DataProvider {
       return {
         freshPicks: [...FASHION_NEW_ARRIVALS_IDS],
         favourites: [...FASHION_BESTSELLERS_IDS],
+      };
+    }
+    if (storeId === 'store-anyasoaps') {
+      return {
+        freshPicks: [...ANYA_SIGNATURE_COLLECTION_IDS],
+        favourites: [...ANYA_BESTSELLERS_IDS],
       };
     }
     return {
@@ -226,6 +270,7 @@ export class FirebaseDataProvider implements DataProvider {
 
     const sid = storeId || 'store-haaply';
     const isAtelier = sid === 'store-atelier';
+    const isAnya = sid === 'store-anyasoaps';
 
     const profile: CustomerProfile = {
       id: `cust-${sid}-${phone.slice(-4)}`,
@@ -235,9 +280,11 @@ export class FirebaseDataProvider implements DataProvider {
           ? 'Karthik'
           : phone === '9880123456'
           ? 'Ananya Sharma'
+          : phone === '9840123456'
+          ? 'Priya Sundaram'
           : 'Valued Customer',
       phone,
-      email: `${phone}@${isAtelier ? 'atelier-studio.com' : 'haaply.in'}`,
+      email: `${phone}@${isAtelier ? 'atelier-studio.com' : isAnya ? 'anyasoaps.com' : 'haaply.in'}`,
     };
 
     this.currentCustomerByStore[sid] = profile;
@@ -248,6 +295,7 @@ export class FirebaseDataProvider implements DataProvider {
     this.currentCustomerByStore = {
       'store-haaply': null,
       'store-atelier': null,
+      'store-anyasoaps': null,
     };
   }
 
@@ -342,7 +390,7 @@ export class FirebaseDataProvider implements DataProvider {
 
   async createOrder(order: OrderPayload): Promise<OrderResult> {
     const sid = order.storeId || 'store-haaply';
-    const prefix = sid === 'store-atelier' ? 'ATL' : 'HP';
+    const prefix = sid === 'store-atelier' ? 'ATL' : sid === 'store-anyasoaps' ? 'ANYA' : 'HP';
     const orderId = `${prefix}-${Date.now().toString().slice(-6)}`;
     const savedOrder: OrderPayload = {
       ...order,
@@ -360,6 +408,8 @@ export class FirebaseDataProvider implements DataProvider {
       message:
         sid === 'store-atelier'
           ? 'Order confirmed. Archival tailoring & insured courier dispatch in progress.'
+          : sid === 'store-anyasoaps'
+          ? 'Order received! Handcrafted botanical artisan batch preparing for dispatch.'
           : 'Order recorded in Haaply Cloud dispatch queue.',
     };
   }
@@ -411,13 +461,19 @@ export class FirebaseDataProvider implements DataProvider {
     const source =
       storeId === 'store-atelier'
         ? ATELIER_FULFILLMENT_LOCATIONS
+        : storeId === 'store-anyasoaps'
+        ? ANYA_FULFILLMENT_LOCATIONS
         : DEFAULT_FULFILLMENT_LOCATIONS;
 
     return activeOnly ? source.filter((l) => l.active) : [...source];
   }
 
   async getFulfillmentLocationById(id: string): Promise<FulfillmentLocation | null> {
-    const allLocations = [...DEFAULT_FULFILLMENT_LOCATIONS, ...ATELIER_FULFILLMENT_LOCATIONS];
+    const allLocations = [
+      ...DEFAULT_FULFILLMENT_LOCATIONS,
+      ...ATELIER_FULFILLMENT_LOCATIONS,
+      ...ANYA_FULFILLMENT_LOCATIONS,
+    ];
     const loc = allLocations.find((l) => l.id === id);
     return loc || null;
   }

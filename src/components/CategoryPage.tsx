@@ -4,6 +4,7 @@ import { Product, ProductVariant, Category } from '../types';
 import { ProductCard } from './ProductCard';
 import { getProductQuantityInCart } from '../utils/productUtils';
 import { useTheme } from '../providers/ThemeProvider';
+import { useActiveStore } from '../providers/StoreProvider';
 
 interface CategoryPageProps {
   categorySlug: string;
@@ -31,7 +32,9 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
   onNavigate,
 }) => {
   const { theme } = useTheme();
-  const isAtelier = theme.id === 'atelier';
+  const { activeStore } = useActiveStore();
+  const isAtelier = theme.id === 'atelier' || activeStore.vertical === 'fashion';
+  const isAnya = theme.id === 'anyasoaps' || activeStore.vertical === 'beauty';
 
   const [freshOnly, setFreshOnly] = useState(false);
   const [sortBy, setSortBy] = useState<'featured' | 'price-asc' | 'price-desc'>('featured');
@@ -48,6 +51,9 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
         if (isAtelier) {
           return p.tags?.some((t) => t.toLowerCase().includes('new') || t.toLowerCase().includes('season'));
         }
+        if (isAnya) {
+          return p.tags?.some((t) => t.toLowerCase().includes('signature') || t.toLowerCase().includes('bestseller') || t.toLowerCase().includes('natural'));
+        }
         return p.isFreshToday;
       })
       .sort((a, b) => {
@@ -55,22 +61,24 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
         if (sortBy === 'price-desc') return b.price - a.price;
         return 0;
       });
-  }, [products, categorySlug, freshOnly, sortBy, isAtelier]);
+  }, [products, categorySlug, freshOnly, sortBy, isAtelier, isAnya]);
 
   if (!category) {
     return (
       <main className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 md:px-8 py-12 text-center">
-        <h1 className={`text-2xl font-bold ${isAtelier ? 'text-[#141414] font-serif' : 'text-[#004B68]'}`}>
+        <h1 className={`text-2xl font-bold ${
+          isAnya ? 'text-[#2F2326] font-serif' : isAtelier ? 'text-[#141414] font-serif' : 'text-[#004B68]'
+        }`} style={isAnya ? { fontFamily: "'Urbanist', 'Playfair Display', Georgia, serif" } : undefined}>
           Category Not Found
         </h1>
-        <p className="text-sm text-[#626B69] mt-2">
+        <p className={`text-sm mt-2 ${isAnya ? 'text-[#6F5B60]' : 'text-[#626B69]'}`}>
           The requested category "{categorySlug}" does not exist in our catalog.
         </p>
         <button
           type="button"
           onClick={() => onNavigate('/shop')}
           className={`mt-5 inline-flex items-center gap-2 px-5 py-2.5 text-white text-xs font-semibold rounded-xl transition-colors shadow-2xs ${
-            isAtelier ? 'bg-[#181818] hover:bg-black' : 'bg-[#53B847] hover:bg-[#469e3c]'
+            isAnya ? 'bg-[#2F2326] hover:bg-[#4A3B3E] rounded-[10px]' : isAtelier ? 'bg-[#181818] hover:bg-black' : 'bg-[#53B847] hover:bg-[#469e3c]'
           }`}
         >
           <ArrowLeft className="w-4 h-4" />
@@ -88,62 +96,72 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
           type="button"
           onClick={() => onNavigate('/')}
           className={`transition-colors focus:outline-none ${
-            isAtelier ? 'hover:text-[#181818] uppercase tracking-wider text-[11px]' : 'hover:text-[#004B68]'
+            isAnya ? 'hover:text-[#2F2326]' : isAtelier ? 'hover:text-[#181818] uppercase tracking-wider text-[11px]' : 'hover:text-[#004B68]'
           }`}
         >
-          {isAtelier ? 'Atelier' : 'Home'}
+          {isAnya ? 'Anya Soaps' : isAtelier ? 'Atelier' : 'Home'}
         </button>
         <span>/</span>
         <button
           type="button"
           onClick={() => onNavigate('/shop')}
           className={`transition-colors focus:outline-none ${
-            isAtelier ? 'hover:text-[#181818] uppercase tracking-wider text-[11px]' : 'hover:text-[#004B68]'
+            isAnya ? 'hover:text-[#2F2326]' : isAtelier ? 'hover:text-[#181818] uppercase tracking-wider text-[11px]' : 'hover:text-[#004B68]'
           }`}
         >
-          {isAtelier ? 'Collection' : 'Shop'}
+          {isAnya ? 'Artisans' : isAtelier ? 'Collection' : 'Shop'}
         </button>
         <span>/</span>
-        <span className={`font-semibold ${isAtelier ? 'text-[#181818] uppercase tracking-wider text-[11px]' : 'text-[#172126]'}`}>
+        <span className={`font-semibold ${
+          isAnya ? 'text-[#2F2326]' : isAtelier ? 'text-[#181818] uppercase tracking-wider text-[11px]' : 'text-[#172126]'
+        }`}>
           {category.name}
         </span>
       </nav>
 
       {/* 2. CATEGORY HEADER HERO */}
-      <div className="relative bg-white rounded-[20px] sm:rounded-[24px] border border-[#E7E7DF] p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 overflow-hidden shadow-xs">
+      <div className={`relative bg-white rounded-[20px] sm:rounded-[24px] border p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 overflow-hidden shadow-xs ${
+        isAnya ? 'border-[#E7C8CF]' : 'border-[#E7E7DF]'
+      }`}>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
           <div className="max-w-xl">
             <div className="flex items-center gap-2 mb-2">
               <span
                 className={`text-[10px] sm:text-[11px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-md ${
-                  isAtelier ? 'bg-[#F4F1EA] text-[#8C7355]' : 'bg-[#F2F3ED] text-[#53B847]'
+                  isAnya ? 'bg-[#FFF4F6] text-[#8FA08C]' : isAtelier ? 'bg-[#F4F1EA] text-[#8C7355]' : 'bg-[#F2F3ED] text-[#53B847]'
                 }`}
               >
-                {isAtelier ? 'Edition' : 'Category'}
+                {isAnya ? 'Botanical Collection' : isAtelier ? 'Edition' : 'Category'}
               </span>
-              <span className="text-xs text-[#626B69]">
-                {categoryProducts.length} {categoryProducts.length === 1 ? 'piece' : 'pieces'} available
+              <span className={`text-xs ${isAnya ? 'text-[#6F5B60]' : 'text-[#626B69]'}`}>
+                {categoryProducts.length} {categoryProducts.length === 1 ? (isAnya ? 'soap' : isAtelier ? 'piece' : 'item') : (isAnya ? 'soaps' : isAtelier ? 'pieces' : 'items')} available
               </span>
             </div>
             <h1
               className={`tracking-tight ${
-                isAtelier
+                isAnya
+                  ? 'text-3xl sm:text-4xl md:text-5xl font-bold text-[#2F2326] font-serif'
+                  : isAtelier
                   ? 'text-3xl sm:text-4xl md:text-5xl font-light text-[#141414] font-serif'
                   : 'text-2xl sm:text-3xl md:text-4xl font-bold text-[#004B68]'
               }`}
-              style={isAtelier ? { fontFamily: "'Playfair Display', Georgia, serif" } : undefined}
+              style={isAnya ? { fontFamily: "'Urbanist', 'Playfair Display', Georgia, serif" } : isAtelier ? { fontFamily: "'Playfair Display', Georgia, serif" } : undefined}
             >
               {category.name}
             </h1>
-            <p className={`text-sm sm:text-base mt-1.5 leading-relaxed ${isAtelier ? 'text-[#767676]' : 'text-[#626B69]'}`}>
+            <p className={`text-sm sm:text-base mt-1.5 leading-relaxed ${isAnya ? 'text-[#6F5B60]' : isAtelier ? 'text-[#767676]' : 'text-[#626B69]'}`}>
               {category.tagline}
-              {!isAtelier && '. Wholesomely prepared using traditional stone-ground techniques with no artificial preservatives.'}
+              {!isAtelier && !isAnya && '. Wholesomely prepared using traditional stone-ground techniques with no artificial preservatives.'}
             </p>
           </div>
 
           <div
-            className={`overflow-hidden shrink-0 border border-[#E7E7DF] shadow-xs ${
-              isAtelier ? 'w-24 h-32 sm:w-32 sm:h-40 rounded-xl' : 'w-20 h-20 sm:w-28 sm:h-28 rounded-2xl'
+            className={`overflow-hidden shrink-0 border shadow-xs ${
+              isAnya
+                ? 'w-24 h-24 sm:w-32 sm:h-32 rounded-2xl border-[#E7C8CF]'
+                : isAtelier
+                ? 'w-24 h-32 sm:w-32 sm:h-40 rounded-xl border-[#E7E7DF]'
+                : 'w-20 h-20 sm:w-28 sm:h-28 rounded-2xl border-[#E7E7DF]'
             }`}
           >
             <img
@@ -155,19 +173,23 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
         </div>
 
         {/* Quick Category Hopping Rail */}
-        <div className="mt-6 pt-4 border-t border-[#E7E7DF]/70">
-          <div className="text-[11px] font-semibold text-[#626B69] uppercase tracking-wider mb-2">
-            Other categories:
+        <div className={`mt-6 pt-4 border-t ${isAnya ? 'border-[#E7C8CF]/70' : 'border-[#E7E7DF]/70'}`}>
+          <div className={`text-[11px] font-semibold uppercase tracking-wider mb-2 ${isAnya ? 'text-[#6F5B60]' : 'text-[#626B69]'}`}>
+            Other collections:
           </div>
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
             <button
               type="button"
               onClick={() => onNavigate('/shop')}
               className={`shrink-0 text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${
-                isAtelier ? 'bg-[#F4F1EA] hover:bg-[#E8E4DA] text-[#181818]' : 'bg-[#F2F3ED] hover:bg-[#E7E7DF] text-[#172126]'
+                isAnya
+                  ? 'bg-[#FFF4F6] hover:bg-[#FDECEF] text-[#2F2326]'
+                  : isAtelier
+                  ? 'bg-[#F4F1EA] hover:bg-[#E8E4DA] text-[#181818]'
+                  : 'bg-[#F2F3ED] hover:bg-[#E7E7DF] text-[#172126]'
               }`}
             >
-              All {isAtelier ? 'Collection' : 'Shop'} ({products.length})
+              All {isAnya ? 'Artisans' : isAtelier ? 'Collection' : 'Shop'} ({products.length})
             </button>
             {categories
               .filter((c) => c.slug !== categorySlug)
@@ -176,8 +198,12 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
                   key={c.id}
                   type="button"
                   onClick={() => onNavigate(`/category/${c.slug}`)}
-                  className={`shrink-0 text-xs px-3 py-1.5 rounded-lg border border-[#E7E7DF] bg-white font-medium transition-colors ${
-                    isAtelier ? 'hover:border-[#141414] text-[#181818]' : 'hover:border-[#37B4A1] text-[#626B69] hover:text-[#004B68]'
+                  className={`shrink-0 text-xs px-3 py-1.5 rounded-lg border font-medium transition-colors ${
+                    isAnya
+                      ? 'border-[#E7C8CF] bg-white hover:border-[#8FA08C] text-[#6F5B60] hover:text-[#2F2326]'
+                      : isAtelier
+                      ? 'border-[#E7E7DF] bg-white hover:border-[#141414] text-[#181818]'
+                      : 'border-[#E7E7DF] bg-white hover:border-[#37B4A1] text-[#626B69] hover:text-[#004B68]'
                   }`}
                 >
                   {c.name}
@@ -188,25 +214,31 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
       </div>
 
       {/* 3. FILTERS & SORT */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3 sm:p-4 bg-white rounded-2xl border border-[#E7E7DF] mb-6 shadow-xs">
+      <div className={`flex flex-wrap items-center justify-between gap-3 p-3 sm:p-4 bg-white rounded-2xl border mb-6 shadow-xs ${
+        isAnya ? 'border-[#E7C8CF]' : 'border-[#E7E7DF]'
+      }`}>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => setFreshOnly(!freshOnly)}
             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors focus:outline-none ${
               freshOnly
-                ? isAtelier
+                ? isAnya
+                  ? 'bg-[#2F2326] text-white'
+                  : isAtelier
                   ? 'bg-[#181818] text-white'
                   : 'bg-[#53B847] text-white'
+                : isAnya
+                ? 'bg-[#FFF4F6] text-[#6F5B60] hover:text-[#2F2326]'
                 : 'bg-[#F2F3ED] text-[#626B69] hover:text-[#172126]'
             }`}
           >
             <span
               className={`w-1.5 h-1.5 rounded-full ${
-                freshOnly ? 'bg-white' : isAtelier ? 'bg-[#8C7355]' : 'bg-[#53B847]'
+                freshOnly ? 'bg-white' : isAnya ? 'bg-[#8FA08C]' : isAtelier ? 'bg-[#8C7355]' : 'bg-[#53B847]'
               }`}
             />
-            <span>{isAtelier ? 'New Season Only' : 'Fresh Today Only'}</span>
+            <span>{isAnya ? 'Signature Soaps Only' : isAtelier ? 'New Season Only' : 'Fresh Today Only'}</span>
           </button>
           {freshOnly && (
             <button
@@ -220,12 +252,16 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          <ArrowUpDown className="w-3.5 h-3.5 text-[#626B69]" />
+          <ArrowUpDown className={`w-3.5 h-3.5 ${isAnya ? 'text-[#8FA08C]' : 'text-[#626B69]'}`} />
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
-            className={`bg-[#F2F3ED] text-[#172126] font-medium py-1.5 px-2.5 rounded-lg border-none focus:outline-none cursor-pointer text-xs ${
-              isAtelier ? 'focus:ring-1 focus:ring-[#141414]' : 'focus:ring-1 focus:ring-[#53B847]'
+            className={`text-[#172126] font-medium py-1.5 px-2.5 rounded-lg border-none focus:outline-none cursor-pointer text-xs ${
+              isAnya
+                ? 'bg-[#FFF4F6] text-[#2F2326] focus:ring-1 focus:ring-[#8FA08C]'
+                : isAtelier
+                ? 'bg-[#F2F3ED] focus:ring-1 focus:ring-[#141414]'
+                : 'bg-[#F2F3ED] focus:ring-1 focus:ring-[#53B847]'
             }`}
           >
             <option value="featured">Sort: Featured</option>
@@ -237,13 +273,13 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
 
       {/* 4. PRODUCT GRID */}
       {categoryProducts.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-2xl border border-[#E7E7DF]">
-          <p className="text-sm text-[#626B69]">No products found with active filters.</p>
+        <div className={`text-center py-16 bg-white rounded-2xl border ${isAnya ? 'border-[#E7C8CF]' : 'border-[#E7E7DF]'}`}>
+          <p className={`text-sm ${isAnya ? 'text-[#6F5B60]' : 'text-[#626B69]'}`}>No products found with active filters.</p>
           <button
             type="button"
             onClick={() => setFreshOnly(false)}
             className={`mt-3 text-xs font-semibold hover:underline ${
-              isAtelier ? 'text-[#181818]' : 'text-[#53B847]'
+              isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'
             }`}
           >
             Show all {category.name}

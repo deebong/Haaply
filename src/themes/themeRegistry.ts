@@ -1,6 +1,7 @@
 import { StoreTheme } from './themeTypes';
 import { haaplyFreshTheme } from './haaplyFresh';
 import { atelierTheme } from './atelier';
+import { anyasoapsTheme } from './anyasoaps';
 import { StoreVertical } from '../types';
 
 /**
@@ -11,6 +12,7 @@ import { StoreVertical } from '../types';
 export const THEME_REGISTRY: Record<string, StoreTheme> = {
   'haaply-fresh': haaplyFreshTheme,
   'atelier': atelierTheme,
+  'anyasoaps': anyasoapsTheme,
 };
 
 export const DEFAULT_THEME_ID = 'haaply-fresh';

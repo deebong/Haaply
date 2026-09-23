@@ -8,6 +8,7 @@ import {
 } from '../utils/productUtils';
 import { useTheme } from '../providers/ThemeProvider';
 import { AtelierProductCard } from '../themes/fashion/AtelierProductCard';
+import { AnyaProductCard } from '../themes/anyasoaps/AnyaProductCard';
 
 interface ProductCardProps {
   product: Product;
@@ -35,7 +36,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const { theme } = useTheme();
 
   // If active theme uses editorial fashion cards, render the specialized Atelier card
-  if (theme.id === 'atelier' || theme.capabilities?.productCardStyle === 'editorial-portrait') {
+  if (theme.id === 'atelier' || (theme.capabilities?.productCardStyle === 'editorial-portrait' && theme.id !== 'anyasoaps')) {
     return (
       <AtelierProductCard
         product={product}
@@ -48,6 +49,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         onToggleWishlist={() => onToggleWishlist(product)}
         onProductClick={() => onProductClick?.(product)}
         currentQuantity={quantityInCart}
+      />
+    );
+  }
+
+  // If active theme is Anya Soaps, render the specialized Anya artisan card
+  if (theme.id === 'anyasoaps') {
+    return (
+      <AnyaProductCard
+        product={product}
+        quantityInCart={quantityInCart}
+        isWishlisted={isWishlisted}
+        onAddToCart={onAddToCart}
+        onUpdateQuantity={onUpdateQuantity}
+        onToggleWishlist={() => onToggleWishlist(product)}
+        onProductClick={() => onProductClick?.(product)}
       />
     );
   }
