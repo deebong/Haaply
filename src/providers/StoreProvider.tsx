@@ -11,6 +11,8 @@ import {
 export interface ActiveStoreContextValue {
   /** The current active StoreInstance */
   store: StoreInstance;
+  /** Ergonomic alias for store */
+  activeStore: StoreInstance;
   /** Explicit function to transition to a different store instance */
   setStoreId: (storeId: string) => void;
   /** List of all configured store instances in the registry */
@@ -68,6 +70,7 @@ export const StoreProvider: React.FC<StoreProviderProps> = ({
   const value = useMemo<ActiveStoreContextValue>(
     () => ({
       store: currentStore,
+      activeStore: currentStore,
       setStoreId: (newStoreId: string) => {
         const resolved = resolveStoreIdentifier(newStoreId);
         setActiveStoreId(resolved.id);

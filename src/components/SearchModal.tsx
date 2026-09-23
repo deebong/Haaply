@@ -5,6 +5,8 @@ import { ProductCard } from './ProductCard';
 import { useScrollLock } from '../hooks/useScrollLock';
 import { getProductQuantityInCart } from '../utils/productUtils';
 import { useTheme } from '../providers/ThemeProvider';
+import { useActiveStore } from '../providers/StoreProvider';
+import { filterProductsByQuery, getPopularSearchTerms, getSearchPlaceholder } from '../utils/searchUtils';
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -34,7 +36,8 @@ export const SearchModal: React.FC<SearchModalProps> = ({
   onProductClick,
 }) => {
   const { theme } = useTheme();
-  const isAtelier = theme.id === 'atelier';
+  const { activeStore } = useActiveStore();
+  const isAtelier = theme.id === 'atelier' || activeStore.vertical === 'fashion';
 
   // Centralized scroll-lock: locks document scroll, handles mobile touch, and supports Escape key
   useScrollLock(isOpen, onClose);
@@ -42,27 +45,17 @@ export const SearchModal: React.FC<SearchModalProps> = ({
   const [query, setQuery] = useState(initialQuery);
 
   const filteredProducts = useMemo(() => {
-    const q = query.toLowerCase().trim();
-    if (!q) return products.slice(0, 6);
-    return products.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        (p.tamilName && p.tamilName.toLowerCase().includes(q)) ||
-        p.category.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q) ||
-        (p.tags && p.tags.some((t) => t.toLowerCase().includes(q)))
-    );
+    return filterProductsByQuery(products, query);
   }, [products, query]);
 
   if (!isOpen) return null;
 
-  const popularSearches = isAtelier
-    ? ['Double-Breasted Coat', 'Silk Shirt', 'Linen Trousers', 'Merino Knit', 'Trench', 'Oatmeal']
-    : ['Dosa Batter', 'Idli Batter', 'Ragi Sevai', 'Chapathi', 'Fresh Paneer', 'Millet'];
+  const popularSearches = getPopularSearchTerms(activeStore.vertical, isAtelier);
+  const placeholderText = getSearchPlaceholder(activeStore.vertical, isAtelier);
 
-  const placeholderText = isAtelier
-    ? 'Search tailored coats, silk shirts, knitwear...'
-    : 'Search fresh batters, millets, paneer...';
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+  };
 
   return (
     <div
@@ -79,7 +72,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
 
       <div className="relative w-full max-w-4xl bg-white rounded-[18px] sm:rounded-[22px] shadow-2xl border border-[#E7E7DF] overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] sm:max-h-[85vh] flex flex-col">
         {/* Search Input Bar */}
-        <div className="p-3.5 sm:p-5 border-b border-[#E7E7DF] flex items-center gap-2.5 sm:gap-3">
+        <form onSubmit={handleSubmit} className="p-3.5 sm:p-5 border-b border-[#E7E7DF] flex items-center gap-2.5 sm:gap-3 m-0 shrink-0">
           <Search className={`w-5 h-5 shrink-0 ${isAtelier ? 'text-[#181818]' : 'text-[#53B847]'}`} />
           <input
             type="text"
@@ -94,6 +87,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
               type="button"
               onClick={() => setQuery('')}
               className="p-1 text-[#626B69] hover:text-[#172126]"
+              aria-label="Clear search query"
             >
               <X className="w-4 h-4" />
             </button>
@@ -102,30 +96,40 @@ export const SearchModal: React.FC<SearchModalProps> = ({
             type="button"
             onClick={onClose}
             className="p-1.5 text-[#626B69] hover:text-[#172126] rounded-lg hover:bg-[#F2F3ED]"
+            aria-label="Close search"
           >
             <X className="w-5 h-5" />
           </button>
-        </div>
+        </form>
 
-        {/* Quick suggestions chips */}
-        <div className="px-3 sm:px-5 py-2 sm:py-2.5 bg-[#FAFAF6] border-b border-[#E7E7DF]/70 flex items-center gap-1.5 sm:gap-2 overflow-x-auto text-xs scrollbar-none">
-          <span className="text-[#626B69] shrink-0 text-xs font-medium">Popular:</span>
-          {popularSearches.map((tag) => (
-            <button
-              key={tag}
-              type="button"
-              onClick={() => setQuery(tag)}
-              className="px-2.5 py-1 bg-white hover:bg-[#F2F3ED] text-[#172126] rounded-lg border border-[#E7E7DF] text-xs font-medium shrink-0 transition-colors"
-            >
-              {tag}
-            </button>
-          ))}
+        {/* Quick suggestions chips (Popular Searches) */}
+        <div className="w-full shrink-0 bg-[#FAFAF6] border-b border-[#E7E7DF]/70">
+          <div
+            data-modal-scrollable="horizontal"
+            className="w-full overflow-x-auto scrollbar-none touch-pan-x overscroll-x-contain py-2.5 sm:py-3"
+          >
+            <div className="flex items-center gap-2 sm:gap-2.5 px-3.5 sm:px-5 w-max min-w-full">
+              <span className="text-[#626B69] shrink-0 text-xs font-medium select-none pr-0.5">Popular:</span>
+              {popularSearches.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => setQuery(tag)}
+                  className="px-3 py-1.5 bg-white hover:bg-[#F2F3ED] text-[#172126] rounded-lg border border-[#E7E7DF] text-xs font-medium shrink-0 transition-colors whitespace-nowrap shadow-xs active:scale-95"
+                >
+                  {tag}
+                </button>
+              ))}
+              {/* End-of-row breathing room buffer */}
+              <div className="w-3 sm:w-4 shrink-0 pointer-events-none" aria-hidden="true" />
+            </div>
+          </div>
         </div>
 
         {/* Results grid */}
         <div
           data-modal-scrollable="true"
-          className="p-3.5 sm:p-6 overflow-y-auto flex-1 overscroll-contain"
+          className="p-3.5 sm:p-6 overflow-y-auto flex-1 min-h-0 overscroll-contain"
         >
           <div className="flex items-center justify-between mb-3 sm:mb-4">
             <span className="text-xs font-semibold uppercase tracking-wider text-[#626B69]">

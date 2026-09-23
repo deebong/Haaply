@@ -56,8 +56,33 @@ function handleTouchMove(e: TouchEvent) {
   if (!target) return;
 
   // Allow text cursor placement and input interactions
-  if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+  if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT') {
     return;
+  }
+
+  // Check if touch gesture is inside an element that scrolls horizontally (e.g. Popular search chips, category tabs)
+  const horizontalScrollable = target.closest(
+    '[data-modal-scrollable="horizontal"], [data-modal-scrollable="true"], .overflow-x-auto, .overflow-x-scroll'
+  ) as HTMLElement | null;
+
+  if (horizontalScrollable && horizontalScrollable.scrollWidth > horizontalScrollable.clientWidth) {
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+    const deltaX = currentX - touchStartX;
+    const deltaY = currentY - touchStartY;
+
+    // If predominantly horizontal swiping, permit touch scrolling within boundaries
+    if (Math.abs(deltaX) >= Math.abs(deltaY)) {
+      const scrollLeft = horizontalScrollable.scrollLeft;
+      const maxScrollLeft = horizontalScrollable.scrollWidth - horizontalScrollable.clientWidth;
+      // Prevent over-scrolling bounce chaining at horizontal boundaries if cancelable
+      if ((scrollLeft <= 0 && deltaX > 0) || (scrollLeft >= maxScrollLeft - 1 && deltaX < 0)) {
+        if (e.cancelable) {
+          e.preventDefault();
+        }
+      }
+      return;
+    }
   }
 
   // Find nearest scrollable container inside an overlay

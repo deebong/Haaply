@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Search, Filter, SlidersHorizontal, Sparkles, Check, X, ArrowRight } from 'lucide-react';
 import { Product, ProductVariant, Category } from '../types';
 import { ProductCard } from './ProductCard';
@@ -17,6 +17,7 @@ interface ShopPageProps {
   onNotifyMe?: (product: Product) => void;
   onNavigate: (path: string) => void;
   initialCategory?: string;
+  initialSearchQuery?: string;
 }
 
 export const ShopPage: React.FC<ShopPageProps> = ({
@@ -30,16 +31,23 @@ export const ShopPage: React.FC<ShopPageProps> = ({
   onNotifyMe,
   onNavigate,
   initialCategory,
+  initialSearchQuery,
 }) => {
   const { theme } = useTheme();
   const isAtelier = theme.id === 'atelier';
 
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(initialSearchQuery || '');
   const [selectedCategorySlug, setSelectedCategorySlug] = useState<string>(initialCategory || 'all');
   const [freshOnly, setFreshOnly] = useState(false);
   const [inStockOnly, setInStockOnly] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>('featured');
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+
+  useEffect(() => {
+    if (initialSearchQuery !== undefined) {
+      setSearchQuery(initialSearchQuery);
+    }
+  }, [initialSearchQuery]);
 
   // Filtered & sorted products
   const filteredProducts = useMemo(() => {

@@ -63,7 +63,8 @@
     scrollbar-width: none;
   }
 
-  [data-modal-scrollable="true"] {
+  [data-modal-scrollable="true"],
+  [data-modal-scrollable="horizontal"] {
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
   }

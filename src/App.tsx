@@ -349,6 +349,9 @@ export default function App() {
             onOpenSearch={() => setIsSearchOpen(true)}
             onOpenAccount={() => setIsAccountOpen(true)}
             isLoggedIn={isLoggedIn}
+            products={activeProducts}
+            onNavigate={navigate}
+            onAddToCart={handleAddToCart}
           />
 
           {/* 2. DELIVERY LOCATION (Grocery only) */}
@@ -376,6 +379,7 @@ export default function App() {
             onNotifyMe={handleNotifyMe}
             onNavigate={navigate}
             initialCategory={route.initialCategory}
+            initialSearchQuery={route.initialSearchQuery}
           />
         )}
 

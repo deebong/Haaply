@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 
 export type Route =
   | { type: 'home' }
-  | { type: 'shop'; initialCategory?: string }
+  | { type: 'shop'; initialCategory?: string; initialSearchQuery?: string }
   | { type: 'category'; categorySlug: string }
   | { type: 'product'; productId: string }
   | { type: 'cart' }
@@ -16,7 +16,7 @@ export function getBasePath(): string {
   if (typeof window === 'undefined') return '';
   const pathname = window.location.pathname;
   const segments = pathname.split('/').filter(Boolean);
-  const knownRoots = ['shop', 'cart', 'checkout', 'category', 'product'];
+  const knownRoots = ['shop', 'search', 'cart', 'checkout', 'category', 'product'];
 
   // If the first segment is not a recognized top-level app route, it's the GitHub repository name
   if (segments.length > 0 && !knownRoots.includes(segments[0])) {
@@ -68,10 +68,11 @@ export function parseRoute(pathname: string, search: string = ''): Route {
     return { type: 'home' };
   }
 
-  if (clean === '/shop') {
+  if (clean === '/shop' || clean === '/search') {
     const params = new URLSearchParams(search);
     const cat = params.get('category') || undefined;
-    return { type: 'shop', initialCategory: cat };
+    const q = params.get('q') || params.get('search') || undefined;
+    return { type: 'shop', initialCategory: cat, initialSearchQuery: q };
   }
 
   if (clean === '/cart') {
@@ -99,8 +100,11 @@ export function parseRoute(pathname: string, search: string = ''): Route {
   }
 
   // Fallback: check if the path ends with known endpoints
-  if (clean.endsWith('/shop')) {
-    return { type: 'shop' };
+  if (clean.endsWith('/shop') || clean.endsWith('/search')) {
+    const params = new URLSearchParams(search);
+    const cat = params.get('category') || undefined;
+    const q = params.get('q') || params.get('search') || undefined;
+    return { type: 'shop', initialCategory: cat, initialSearchQuery: q };
   }
   if (clean.endsWith('/cart')) {
     return { type: 'cart' };
