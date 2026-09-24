@@ -71,7 +71,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           }`}>
             <div className="flex items-center gap-2">
               <ShoppingBag className={`w-5 h-5 ${
-                isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#181818]' : 'text-[var(--color-primary)]'
+                isAnya ? 'text-[#C97C89]' : isAtelier ? 'text-[#181818]' : 'text-[var(--color-primary)]'
               }`} />
               <h3 className={`text-base sm:text-lg font-bold ${
                 isAnya
@@ -113,7 +113,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             {amountNeededForFreeDelivery === 0 ? (
               <p className={`font-semibold flex items-center gap-1.5 ${
                 isAnya
-                  ? 'text-[#8FA08C]'
+                  ? 'text-[#C97C89]'
                   : isAtelier
                   ? 'text-[#181818]'
                   : 'text-[#53B847]'
@@ -131,7 +131,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               <div
                 className={`h-full transition-all duration-300 ${
                   isAnya
-                    ? 'bg-[#8FA08C]'
+                    ? 'bg-[#C97C89]'
                     : isAtelier
                     ? 'bg-[#181818]'
                     : 'bg-[#53B847]'
@@ -151,7 +151,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             {cartItems.length === 0 ? (
               <div className="text-center py-12 sm:py-16">
                 <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${
-                  isAnya ? 'bg-[#FDECEF] text-[#8FA08C]' : 'bg-[#F2F3ED] text-[#626B69]'
+                  isAnya ? 'bg-[#FFF4F6] text-[#C97C89]' : 'bg-[#F2F3ED] text-[#626B69]'
                 }`}>
                   <ShoppingBag className="w-8 h-8 stroke-[1.5]" />
                 </div>
@@ -234,7 +234,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         {product.tamilName ? `${product.tamilName} • ` : ''}
                         <span className={
                           isAnya
-                            ? 'text-[#8FA08C] font-medium'
+                            ? 'text-[#C97C89] font-medium'
                             : isAtelier
                             ? 'text-[#8C7355] font-medium'
                             : 'text-[var(--color-accent)] font-medium'
@@ -310,7 +310,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <span>{isAnya ? 'Studio Delivery' : isAtelier ? 'Express Delivery' : 'Fresh Delivery'}</span>
                   <span className={`font-semibold ${isAnya ? 'text-[#2F2326]' : 'text-[#172126]'}`}>
                     {deliveryFee === 0 ? (
-                      <span className={isAnya ? 'text-[#8FA08C] font-bold' : isAtelier ? 'text-[#181818] font-bold' : 'text-[#53B847]'}>FREE</span>
+                      <span className={isAnya ? 'text-[#C97C89] font-bold' : isAtelier ? 'text-[#181818] font-bold' : 'text-[#53B847]'}>FREE</span>
                     ) : (
                       `₹${deliveryFee}`
                     )}

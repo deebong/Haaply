@@ -140,7 +140,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
             <>
               <span>/</span>
               <span className={`font-medium ${
-                isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#8C7355] tracking-wider uppercase text-[11px]' : 'text-[#004B68]'
+                isAnya ? 'text-[#C97C89]' : isAtelier ? 'text-[#8C7355] tracking-wider uppercase text-[11px]' : 'text-[#004B68]'
               }`}>
                 {currentCategoryObj.name}
               </span>
@@ -153,7 +153,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
             <span
               className={`inline-block text-[11px] font-bold uppercase tracking-wider mb-0.5 sm:mb-1 ${
                 isAnya
-                  ? 'text-[#8FA08C]'
+                  ? 'text-[#C97C89]'
                   : isAtelier
                   ? 'text-[#8C7355] tracking-[0.2em] font-medium'
                   : 'text-[#53B847]'
@@ -187,9 +187,9 @@ export const ShopPage: React.FC<ShopPageProps> = ({
             <button
               type="button"
               onClick={() => onNavigate(`/category/${currentCategoryObj.slug}`)}
-              className={`inline-flex items-center gap-1.5 text-xs font-semibold self-start md:self-auto py-1 transition-colors ${
+              className={`inline-flex items-center gap-1.5 text-xs font-semibold self-start md:self-auto py-1 transition-colors cursor-pointer ${
                 isAnya
-                  ? 'text-[#2F2326] hover:text-[#8FA08C]'
+                  ? 'text-[#2F2326] hover:text-[#C97C89]'
                   : isAtelier
                   ? 'text-[#181818] hover:text-[#8C7355] uppercase tracking-wider text-[11px]'
                   : 'text-[#004B68] hover:text-[#53B847]'
@@ -206,7 +206,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
       <div className="relative mb-4 sm:mb-5">
         <div className="relative flex items-center w-full max-w-2xl">
           <Search className={`w-4 h-4 sm:w-5 sm:h-5 absolute left-3.5 pointer-events-none ${
-            isAnya ? 'text-[#8FA08C]' : 'text-[#626B69]'
+            isAnya ? 'text-[#C97C89]' : 'text-[#626B69]'
           }`} />
           <input
             id="shop-search-input"
@@ -222,7 +222,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
             }
             className={`w-full pl-10 sm:pl-11 pr-10 py-2.5 sm:py-3 text-sm bg-white rounded-xl border text-[#172126] placeholder-[#626B69] shadow-xs focus:outline-none transition-all ${
               isAnya
-                ? 'border-[#E7C8CF] focus:border-[#8FA08C] focus:ring-1 focus:ring-[#8FA08C]'
+                ? 'border-[#E7C8CF] focus:border-[#C97C89] focus:ring-1 focus:ring-[#C97C89]'
                 : isAtelier
                 ? 'border-[#E7E7DF] focus:border-[#141414] focus:ring-1 focus:ring-[#141414]'
                 : 'border-[#E7E7DF] focus:border-[#53B847] focus:ring-1 focus:ring-[#53B847]'
@@ -256,7 +256,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                   ? 'bg-[#181818] text-white shadow-xs'
                   : 'bg-[#004B68] text-white shadow-xs'
                 : isAnya
-                ? 'bg-white text-[#6F5B60] hover:text-[#2F2326] border border-[#E7C8CF] hover:border-[#8FA08C]'
+                ? 'bg-white text-[#6F5B60] hover:text-[#2F2326] border border-[#E7C8CF] hover:border-[#C97C89]'
                 : 'bg-white text-[#626B69] hover:text-[#172126] border border-[#E7E7DF] hover:border-[#141414]'
             }`}
           >
@@ -266,7 +266,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                 selectedCategorySlug === 'all'
                   ? 'bg-white/20 text-white'
                   : isAnya
-                  ? 'bg-[#FFF4F6] text-[#8FA08C]'
+                  ? 'bg-[#FFF4F6] text-[#C97C89]'
                   : 'bg-[#F2F3ED] text-[#626B69]'
               }`}
             >
@@ -293,7 +293,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                       ? 'bg-[#181818] text-white shadow-xs'
                       : 'bg-[#004B68] text-white shadow-xs'
                     : isAnya
-                    ? 'bg-white text-[#6F5B60] hover:text-[#2F2326] border border-[#E7C8CF] hover:border-[#8FA08C]'
+                    ? 'bg-white text-[#6F5B60] hover:text-[#2F2326] border border-[#E7C8CF] hover:border-[#C97C89]'
                     : 'bg-white text-[#626B69] hover:text-[#172126] border border-[#E7E7DF] hover:border-[#141414]'
                 }`}
               >
@@ -303,7 +303,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                     isSelected
                       ? 'bg-white/20 text-white'
                       : isAnya
-                      ? 'bg-[#FFF4F6] text-[#8FA08C]'
+                      ? 'bg-[#FFF4F6] text-[#C97C89]'
                       : 'bg-[#F2F3ED] text-[#626B69]'
                   }`}
                 >
@@ -339,7 +339,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
           >
             <span
               className={`w-1.5 h-1.5 rounded-full ${
-                freshOnly ? 'bg-white' : isAnya ? 'bg-[#8FA08C]' : isAtelier ? 'bg-[#8C7355]' : 'bg-[#53B847]'
+                freshOnly ? 'bg-white' : isAnya ? 'bg-[#C97C89]' : isAtelier ? 'bg-[#8C7355]' : 'bg-[#53B847]'
               }`}
             />
             <span className="whitespace-nowrap">{isAnya ? 'Signature Soaps' : isAtelier ? 'New Season' : 'Fresh Today'}</span>
@@ -394,7 +394,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
           isAnya ? 'border-[#E7C8CF]' : 'border-[#E7E7DF]'
         }`}>
           <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 ${
-            isAnya ? 'bg-[#FFF4F6] text-[#8FA08C]' : 'bg-[#F2F3ED] text-[#626B69]'
+            isAnya ? 'bg-[#FFF4F6] text-[#C97C89]' : 'bg-[#F2F3ED] text-[#626B69]'
           }`}>
             <Search className="w-6 h-6" />
           </div>

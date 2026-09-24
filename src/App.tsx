@@ -331,7 +331,10 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAFAF6] text-[#172126] overflow-x-hidden">
+    <div
+      className="min-h-screen flex flex-col overflow-x-hidden transition-colors duration-200"
+      style={{ backgroundColor: theme.colors.background, color: theme.colors.text }}
+    >
       {/* 1. GLOBAL HEADER & LOCATION */}
       {isAtelier ? (
         <AtelierHeader

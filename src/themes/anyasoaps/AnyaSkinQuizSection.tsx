@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { Sparkles, Check, ArrowRight } from 'lucide-react';
+import { Sparkles, Check } from 'lucide-react';
 import { Product } from '../../types';
 import { AnyaButton } from './AnyaButton';
+import { AnyaCard, getAnyaClippedPolygon } from './AnyaCard';
+import { AnyaBadge } from './AnyaBadge';
 
 interface AnyaSkinQuizSectionProps {
   products: Product[];
@@ -14,38 +16,49 @@ export const AnyaSkinQuizSection: React.FC<AnyaSkinQuizSectionProps> = ({
   onAddToCart,
   onNavigate,
 }) => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
   const [skinType, setSkinType] = useState('dry');
   const [scent, setScent] = useState('floral');
   const [concerns, setConcerns] = useState<string[]>(['hydration']);
   const [submitted, setSubmitted] = useState(false);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
 
-  const toggleConcern = (id: string) => {
+  const toggleConcern = (val: string) => {
     setConcerns((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+      prev.includes(val) ? prev.filter((item) => item !== val) : [...prev, val]
     );
   };
 
-  // Compute matched product
-  const recommendedProduct = React.useMemo(() => {
-    if (skinType === 'oily') {
-      return products.find((p) => p.id === 'anya-charcoal-detox') || products[0];
+  // Find best match product
+  const getRecommendation = () => {
+    if (skinType === 'dry' || concerns.includes('hydration')) {
+      return (
+        products.find((p) => p.name.toLowerCase().includes('goat milk')) ||
+        products.find((p) => p.name.toLowerCase().includes('shea')) ||
+        products[0]
+      );
+    }
+    if (skinType === 'oily' || concerns.includes('detox')) {
+      return (
+        products.find((p) => p.name.toLowerCase().includes('charcoal')) ||
+        products.find((p) => p.name.toLowerCase().includes('neem')) ||
+        products[1]
+      );
     }
     if (skinType === 'baby' || scent === 'unscented') {
-      return products.find((p) => p.id === 'anya-coconut-mild') || products[0];
+      return (
+        products.find((p) => p.name.toLowerCase().includes('baby')) ||
+        products.find((p) => p.name.toLowerCase().includes('calendula')) ||
+        products[2]
+      );
     }
-    if (concerns.includes('glow')) {
-      return products.find((p) => p.id === 'anya-turmeric-glow') || products[0];
-    }
-    if (concerns.includes('calm')) {
-      return products.find((p) => p.id === 'anya-avarampoo-calm') || products[0];
-    }
-    if (scent === 'floral') {
-      return products.find((p) => p.id === 'anya-rose-shea-butter') || products[0];
-    }
-    return products.find((p) => p.id === 'anya-goat-milk-soap') || products[0];
-  }, [products, skinType, scent, concerns]);
+    return (
+      products.find((p) => p.name.toLowerCase().includes('rose')) ||
+      products[0]
+    );
+  };
+
+  const recommendedProduct = getRecommendation();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,13 +66,17 @@ export const AnyaSkinQuizSection: React.FC<AnyaSkinQuizSectionProps> = ({
   };
 
   return (
-    <section id="quiz" className="py-16 sm:py-24 bg-white border-b border-[#E7C8CF]/60">
+    <section id="quiz" className="py-16 sm:py-24 bg-white border-b border-[#E7C8CF]">
       <div className="max-w-[960px] mx-auto px-4 sm:px-6 md:px-8">
-        <div className="bg-[#FFF4F6] rounded-3xl border border-[#E7C8CF] p-7 sm:p-12 shadow-sm">
+        <AnyaCard
+          variant="blush"
+          cutSize="lg"
+          className="p-7 sm:p-12 shadow-sm"
+        >
           {/* Section Heading */}
           <div className="text-center max-w-xl mx-auto mb-8 sm:mb-10">
-            <span className="text-[11px] font-bold tracking-widest uppercase text-[#8FA08C] block mb-2">
-              PERSONALIZED SKIN ANALYSIS
+            <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-[#C97C89] block mb-2">
+              Personalized Skin Analysis
             </span>
             <h2
               className="text-2xl sm:text-3xl md:text-4xl font-semibold text-[#2F2326] tracking-tight"
@@ -86,18 +103,18 @@ export const AnyaSkinQuizSection: React.FC<AnyaSkinQuizSectionProps> = ({
                     { id: 'normal', label: 'Normal / Combo' },
                     { id: 'baby', label: 'Hyper-Reactive / Baby' },
                   ].map((opt) => (
-                    <button
+                    <AnyaBadge
                       key={opt.id}
+                      as="button"
                       type="button"
                       onClick={() => setSkinType(opt.id)}
-                      className={`px-3 py-2.5 rounded-xl text-xs font-semibold border transition-all text-center ${
-                        skinType === opt.id
-                          ? 'bg-[#2F2326] text-white border-[#2F2326] shadow-xs'
-                          : 'bg-white text-[#2F2326] border-[#E7C8CF] hover:border-[#8FA08C]'
-                      }`}
+                      active={skinType === opt.id}
+                      variant="surface"
+                      size="md"
+                      className="w-full justify-center normal-case font-semibold min-h-[42px] text-center"
                     >
                       {opt.label}
-                    </button>
+                    </AnyaBadge>
                   ))}
                 </div>
               </div>
@@ -114,18 +131,18 @@ export const AnyaSkinQuizSection: React.FC<AnyaSkinQuizSectionProps> = ({
                     { id: 'herbal', label: 'Cooling Wildflowers' },
                     { id: 'citrus', label: 'Warm Orange & Earth' },
                   ].map((opt) => (
-                    <button
+                    <AnyaBadge
                       key={opt.id}
+                      as="button"
                       type="button"
                       onClick={() => setScent(opt.id)}
-                      className={`px-3 py-2.5 rounded-xl text-xs font-semibold border transition-all text-center ${
-                        scent === opt.id
-                          ? 'bg-[#2F2326] text-white border-[#2F2326] shadow-xs'
-                          : 'bg-white text-[#2F2326] border-[#E7C8CF] hover:border-[#8FA08C]'
-                      }`}
+                      active={scent === opt.id}
+                      variant="surface"
+                      size="md"
+                      className="w-full justify-center normal-case font-semibold min-h-[42px] text-center"
                     >
                       {opt.label}
-                    </button>
+                    </AnyaBadge>
                   ))}
                 </div>
               </div>
@@ -144,18 +161,18 @@ export const AnyaSkinQuizSection: React.FC<AnyaSkinQuizSectionProps> = ({
                   ].map((opt) => {
                     const isSelected = concerns.includes(opt.id);
                     return (
-                      <button
+                      <AnyaBadge
                         key={opt.id}
+                        as="button"
                         type="button"
                         onClick={() => toggleConcern(opt.id)}
-                        className={`px-3 py-2.5 rounded-xl text-xs font-semibold border transition-all text-center ${
-                          isSelected
-                            ? 'bg-[#E39AA6] text-[#2F2326] border-[#E39AA6] shadow-xs'
-                            : 'bg-white text-[#2F2326] border-[#E7C8CF] hover:border-[#8FA08C]'
-                        }`}
+                        active={isSelected}
+                        variant="surface"
+                        size="md"
+                        className="w-full justify-center normal-case font-semibold min-h-[42px] text-center"
                       >
                         {opt.label}
-                      </button>
+                      </AnyaBadge>
                     );
                   })}
                 </div>
@@ -167,27 +184,57 @@ export const AnyaSkinQuizSection: React.FC<AnyaSkinQuizSectionProps> = ({
                   <label className="block text-xs font-semibold text-[#2F2326] mb-1">
                     Your Name
                   </label>
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Priya"
-                    className="w-full px-4 py-2.5 text-xs bg-white rounded-xl border border-[#E7C8CF] text-[#2F2326] focus:outline-none focus:ring-1 focus:ring-[#8FA08C]"
-                  />
+                  <div
+                    className="relative group focus-within:shadow-xs"
+                    style={{ clipPath: getAnyaClippedPolygon(8) }}
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="absolute inset-0 bg-[#E7C8CF] group-focus-within:bg-[#C97C89] transition-colors pointer-events-none"
+                      style={{ clipPath: getAnyaClippedPolygon(8) }}
+                    />
+                    <span
+                      aria-hidden="true"
+                      className="absolute inset-[1px] bg-white pointer-events-none"
+                      style={{ clipPath: getAnyaClippedPolygon(7) }}
+                    />
+                    <input
+                      type="text"
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="e.g. Priya"
+                      className="relative z-10 w-full px-4 py-2.5 text-xs bg-transparent text-[#2F2326] placeholder-[#8E7A7E] focus:outline-none"
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-[#2F2326] mb-1">
                     Email Address
                   </label>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="e.g. priya@example.com"
-                    className="w-full px-4 py-2.5 text-xs bg-white rounded-xl border border-[#E7C8CF] text-[#2F2326] focus:outline-none focus:ring-1 focus:ring-[#8FA08C]"
-                  />
+                  <div
+                    className="relative group focus-within:shadow-xs"
+                    style={{ clipPath: getAnyaClippedPolygon(8) }}
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="absolute inset-0 bg-[#E7C8CF] group-focus-within:bg-[#C97C89] transition-colors pointer-events-none"
+                      style={{ clipPath: getAnyaClippedPolygon(8) }}
+                    />
+                    <span
+                      aria-hidden="true"
+                      className="absolute inset-[1px] bg-white pointer-events-none"
+                      style={{ clipPath: getAnyaClippedPolygon(7) }}
+                    />
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="e.g. priya@example.com"
+                      className="relative z-10 w-full px-4 py-2.5 text-xs bg-transparent text-[#2F2326] placeholder-[#8E7A7E] focus:outline-none"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -205,13 +252,13 @@ export const AnyaSkinQuizSection: React.FC<AnyaSkinQuizSectionProps> = ({
               </div>
             </form>
           ) : (
-            /* Result Box */
-            <div className="bg-white p-6 sm:p-8 rounded-[18px] border border-[#E7C8CF] text-center space-y-4 shadow-xs">
-              <div className="w-12 h-12 rounded-full bg-[#FDECEF] text-[#8FA08C] mx-auto flex items-center justify-center">
+            /* Result Box with AnyaCard */
+            <AnyaCard variant="surface" cutSize="md" className="p-6 sm:p-8 text-center space-y-4">
+              <div className="w-12 h-12 rounded-full bg-[#FFF4F6] border border-[#E7C8CF] text-[#C97C89] mx-auto flex items-center justify-center">
                 <Check className="w-6 h-6 stroke-[2]" />
               </div>
               <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-[#8FA08C]">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#C97C89]">
                   Prescription for {name || 'You'}
                 </span>
                 <h3 className="text-xl sm:text-2xl font-bold text-[#2F2326] mt-1" style={{ fontFamily: "'Urbanist', 'Playfair Display', Georgia, serif" }}>
@@ -244,13 +291,13 @@ export const AnyaSkinQuizSection: React.FC<AnyaSkinQuizSectionProps> = ({
               <button
                 type="button"
                 onClick={() => setSubmitted(false)}
-                className="text-[11px] text-[#8E7A7E] underline hover:text-[#2F2326] block mx-auto pt-2 cursor-pointer"
+                className="text-[11px] text-[#8E7A7E] underline hover:text-[#C97C89] block mx-auto pt-2 cursor-pointer"
               >
                 Retake Skin Quiz
               </button>
-            </div>
+            </AnyaCard>
           )}
-        </div>
+        </AnyaCard>
       </div>
     </section>
   );

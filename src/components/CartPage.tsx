@@ -4,6 +4,7 @@ import { CartItem, Product, ProductVariant } from '../types';
 import { useTheme } from '../providers/ThemeProvider';
 import { useActiveStore } from '../providers/StoreProvider';
 import { AnyaButton } from '../themes/anyasoaps/AnyaButton';
+import { getAnyaClippedPolygon } from '../themes/anyasoaps/AnyaCard';
 
 interface CartPageProps {
   cartItems: CartItem[];
@@ -46,7 +47,8 @@ export const CartPage: React.FC<CartPageProps> = ({
   return (
     <main
       id="cart-page"
-      className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-10 py-6 sm:py-8 md:py-10"
+      className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-10 py-6 sm:py-8 md:py-10 transition-colors duration-150"
+      style={{ backgroundColor: theme.colors.background }}
     >
       {/* 1. BREADCRUMBS */}
       <nav
@@ -103,8 +105,8 @@ export const CartPage: React.FC<CartPageProps> = ({
             id="cart-continue-shopping-top"
             type="button"
             onClick={() => onNavigate('/shop')}
-            className={`inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold transition-colors focus:outline-none py-1 ${
-              isAnya ? 'text-[#8FA08C] hover:text-[#6F5B60]' : isAtelier ? 'text-[#181818] hover:text-[#767676]' : 'text-[#53B847] hover:text-[#469e3c]'
+            className={`inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold transition-colors focus:outline-none py-1 cursor-pointer ${
+              isAnya ? 'text-[#C97C89] hover:text-[#2F2326]' : isAtelier ? 'text-[#181818] hover:text-[#767676]' : 'text-[#53B847] hover:text-[#469e3c]'
             }`}
           >
             <ArrowLeft className="w-3.5 h-3.5" />
@@ -117,12 +119,13 @@ export const CartPage: React.FC<CartPageProps> = ({
       {cartItems.length === 0 ? (
         <div
           id="cart-empty-state"
-          className={`bg-white rounded-[22px] border p-8 sm:p-12 md:p-16 text-center max-w-2xl mx-auto shadow-xs my-6 ${
-            isAnya ? 'border-[#E7C8CF]' : 'border-[#E7E7DF]'
+          className={`bg-white border p-8 sm:p-12 md:p-16 text-center max-w-2xl mx-auto shadow-xs my-6 ${
+            isAnya ? 'border-[#E7C8CF]' : 'border-[#E7E7DF] rounded-[22px]'
           }`}
+          style={isAnya ? { clipPath: getAnyaClippedPolygon(16) } : undefined}
         >
           <div className={`w-20 h-20 mx-auto mb-5 rounded-full flex items-center justify-center ${
-            isAnya ? 'bg-[#FFF4F6] text-[#8FA08C]' : 'bg-[#F2F3ED] text-[#626B69]'
+            isAnya ? 'bg-[#FFF4F6] text-[#C97C89]' : 'bg-[#F2F3ED] text-[#626B69]'
           }`}>
             <ShoppingBag className="w-10 h-10 stroke-[1.5]" />
           </div>
@@ -171,15 +174,15 @@ export const CartPage: React.FC<CartPageProps> = ({
 
           <div className="mt-8 pt-6 border-t border-[#E7E7DF] grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-[#626B69]">
             <div className="flex items-center justify-center gap-1.5">
-              <span className={`w-1.5 h-1.5 rounded-full ${isAnya ? 'bg-[#8FA08C]' : isAtelier ? 'bg-[#181818]' : 'bg-[#53B847]'}`} />
+              <span className={`w-1.5 h-1.5 rounded-full ${isAnya ? 'bg-[#C97C89]' : isAtelier ? 'bg-[#181818]' : 'bg-[#53B847]'}`} />
               <span>{isAnya ? '100% Plant-Based' : isAtelier ? 'Complimentary Courier' : 'Zero Preservatives'}</span>
             </div>
             <div className="flex items-center justify-center gap-1.5">
-              <span className={`w-1.5 h-1.5 rounded-full ${isAnya ? 'bg-[#8FA08C]' : isAtelier ? 'bg-[#181818]' : 'bg-[#53B847]'}`} />
+              <span className={`w-1.5 h-1.5 rounded-full ${isAnya ? 'bg-[#C97C89]' : isAtelier ? 'bg-[#181818]' : 'bg-[#53B847]'}`} />
               <span>{isAnya ? 'Cold-Process Artisan' : isAtelier ? 'Artisanal Tailoring' : 'Stone-Ground Daily'}</span>
             </div>
             <div className="flex items-center justify-center gap-1.5">
-              <span className={`w-1.5 h-1.5 rounded-full ${isAnya ? 'bg-[#8FA08C]' : isAtelier ? 'bg-[#181818]' : 'bg-[#53B847]'}`} />
+              <span className={`w-1.5 h-1.5 rounded-full ${isAnya ? 'bg-[#C97C89]' : isAtelier ? 'bg-[#181818]' : 'bg-[#53B847]'}`} />
               <span>{isAnya ? 'Studio Direct Dispatch' : isAtelier ? '14-Day Exchanges' : 'Doorstep Morning Slot'}</span>
             </div>
           </div>
@@ -199,13 +202,13 @@ export const CartPage: React.FC<CartPageProps> = ({
               <div className="flex items-center justify-between gap-2">
                 {amountNeededForFreeDelivery === 0 ? (
                   <p className={`font-semibold flex items-center gap-1.5 text-xs sm:text-sm ${
-                    isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'
+                    isAnya ? 'text-[#C97C89]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'
                   }`}>
                     <span className="text-base">✓</span> {isAnya ? 'You qualify for Free Studio Delivery!' : isAtelier ? 'You qualify for Complimentary Express Delivery!' : 'You qualify for Free Fresh Morning Delivery!'}
                   </p>
                 ) : (
                   <p className="text-[#626B69] text-xs sm:text-sm">
-                    Add <strong className={isAnya ? 'text-[#2F2326]' : isAtelier ? 'text-[#181818]' : 'text-[#004B68]'}>₹{amountNeededForFreeDelivery}</strong> more to unlock <strong className={isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'}>{isAnya ? 'Free Studio Shipping' : isAtelier ? 'Complimentary Delivery' : 'Free Delivery'}</strong>
+                    Add <strong className={isAnya ? 'text-[#2F2326]' : isAtelier ? 'text-[#181818]' : 'text-[#004B68]'}>₹{amountNeededForFreeDelivery}</strong> more to unlock <strong className={isAnya ? 'text-[#C97C89]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'}>{isAnya ? 'Free Studio Shipping' : isAtelier ? 'Complimentary Delivery' : 'Free Delivery'}</strong>
                   </p>
                 )}
                 <span className="text-[11px] font-medium text-[#626B69]">
@@ -216,7 +219,7 @@ export const CartPage: React.FC<CartPageProps> = ({
               <div className="w-full h-2 bg-[#E7E7DF] rounded-full mt-2.5 overflow-hidden">
                 <div
                   className={`h-full transition-all duration-300 rounded-full ${
-                    isAnya ? 'bg-[#8FA08C]' : isAtelier ? 'bg-[#181818]' : 'bg-[#53B847]'
+                    isAnya ? 'bg-[#C97C89]' : isAtelier ? 'bg-[#181818]' : 'bg-[#53B847]'
                   }`}
                   style={{
                     width: `${Math.min(100, (subtotal / freeDeliveryThreshold) * 100)}%`,
@@ -269,12 +272,12 @@ export const CartPage: React.FC<CartPageProps> = ({
 
                       <div className="flex-1 min-w-0">
                         <span className={`text-[10px] sm:text-[11px] font-bold uppercase tracking-wider ${
-                          isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#767676]' : 'text-[#53B847]'
+                          isAnya ? 'text-[#C97C89]' : isAtelier ? 'text-[#767676]' : 'text-[#53B847]'
                         }`}>
                           {product.category}
                         </span>
                         <h3 className={`text-sm sm:text-base font-semibold truncate transition-colors ${
-                          isAnya ? 'text-[#2F2326] hover:text-[#8FA08C]' : 'text-[#172126] hover:text-[#004B68]'
+                          isAnya ? 'text-[#2F2326] hover:text-[#C97C89]' : 'text-[#172126] hover:text-[#004B68]'
                         }`}>
                           <button
                             type="button"
@@ -292,7 +295,7 @@ export const CartPage: React.FC<CartPageProps> = ({
                           </p>
                         )}
                         <p className="text-xs text-[#626B69] mt-0.5">
-                          <span className={isAnya ? 'text-[#8FA08C] font-medium' : isAtelier ? 'text-[#8C7355] font-medium' : 'font-semibold text-[#004B68]'}>{packDisplay}</span> • ₹{unitPrice} each
+                          <span className={isAnya ? 'text-[#C97C89] font-medium' : isAtelier ? 'text-[#8C7355] font-medium' : 'font-semibold text-[#004B68]'}>{packDisplay}</span> • ₹{unitPrice} each
                         </p>
 
                         {/* Stock warning notice */}
@@ -324,7 +327,7 @@ export const CartPage: React.FC<CartPageProps> = ({
                             aria-label={isWishlisted ? `Remove ${product.name} from wishlist` : `Save ${product.name} for later`}
                             title={isWishlisted ? 'Saved in wishlist' : 'Save for later'}
                           >
-                            <Heart className={`w-4 h-4 ${isWishlisted ? (isAnya ? 'fill-[#8FA08C] text-[#8FA08C]' : isAtelier ? 'fill-[#181818] text-[#181818]' : 'fill-[#004B68] text-[#004B68]') : ''}`} />
+                            <Heart className={`w-4 h-4 ${isWishlisted ? (isAnya ? 'fill-[#C97C89] text-[#C97C89]' : isAtelier ? 'fill-[#181818] text-[#181818]' : 'fill-[#004B68] text-[#004B68]') : ''}`} />
                           </button>
                         )}
                         <button
@@ -401,7 +404,7 @@ export const CartPage: React.FC<CartPageProps> = ({
                   variant="secondary"
                   size="md"
                   onClick={() => onNavigate('/shop')}
-                  icon={<ArrowLeft className="w-4 h-4 text-[#8FA08C]" />}
+                  icon={<ArrowLeft className="w-4 h-4 text-[#C97C89]" />}
                   iconPosition="left"
                 >
                   Continue Shopping
@@ -428,9 +431,10 @@ export const CartPage: React.FC<CartPageProps> = ({
           <div className="lg:col-span-5 xl:col-span-4 lg:sticky lg:top-24 space-y-4">
             <div
               id="cart-order-summary-card"
-              className={`bg-white rounded-[22px] border p-5 sm:p-6 shadow-xs space-y-5 ${
-                isAnya ? 'border-[#E7C8CF]' : 'border-[#E7E7DF]'
+              className={`bg-white border p-5 sm:p-6 shadow-xs space-y-5 ${
+                isAnya ? 'border-[#E7C8CF]' : 'border-[#E7E7DF] rounded-[22px]'
               }`}
+              style={isAnya ? { clipPath: getAnyaClippedPolygon(16) } : undefined}
             >
               <h2 className={`text-base sm:text-lg font-bold border-b pb-3.5 ${
                 isAnya
@@ -458,7 +462,7 @@ export const CartPage: React.FC<CartPageProps> = ({
                   </div>
                   <span className="font-semibold text-[#172126]">
                     {deliveryFee === 0 ? (
-                      <span className={isAnya ? 'text-[#8FA08C] font-bold' : isAtelier ? 'text-[#181818] font-bold' : 'text-[#53B847]'}>FREE</span>
+                      <span className={isAnya ? 'text-[#C97C89] font-bold' : isAtelier ? 'text-[#181818] font-bold' : 'text-[#53B847]'}>FREE</span>
                     ) : (
                       `₹${deliveryFee}`
                     )}
@@ -483,11 +487,14 @@ export const CartPage: React.FC<CartPageProps> = ({
               </div>
 
               {/* Guarantee Notice */}
-              <div className={`p-3 rounded-xl border flex items-start gap-2.5 text-xs text-[#626B69] ${
-                isAnya ? 'bg-[#FFF8FA] border-[#E7C8CF]' : 'bg-[#FAFAF6] border-[#E7E7DF]'
-              }`}>
+              <div
+                className={`p-3 border flex items-start gap-2.5 text-xs text-[#626B69] ${
+                  isAnya ? 'bg-[#FFF8FA] border-[#E7C8CF]' : 'bg-[#FAFAF6] border-[#E7E7DF] rounded-xl'
+                }`}
+                style={isAnya ? { clipPath: getAnyaClippedPolygon(8) } : undefined}
+              >
                 <ShieldCheck className={`w-4 h-4 shrink-0 mt-0.5 ${
-                  isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'
+                  isAnya ? 'text-[#C97C89]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'
                 }`} />
                 <div className="leading-snug">
                   <strong className={`font-semibold ${isAnya ? 'text-[#2F2326]' : 'text-[#172126]'}`}>

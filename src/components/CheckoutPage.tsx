@@ -34,6 +34,8 @@ import { useDataService } from '../providers/DataProvider';
 import { useTheme } from '../providers/ThemeProvider';
 import { useActiveStore } from '../providers/StoreProvider';
 import { useConfig } from '../providers/ConfigProvider';
+import { AnyaButton } from '../themes/anyasoaps/AnyaButton';
+import { getAnyaClippedPolygon } from '../themes/anyasoaps/AnyaCard';
 
 interface CheckoutPageProps {
   cartItems: CartItem[];
@@ -470,15 +472,18 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
     return (
       <main
         id="checkout-empty-state"
-        className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-10 py-10 sm:py-16 text-center"
+        className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-10 py-10 sm:py-16 text-center transition-colors duration-150"
+        style={{ backgroundColor: theme.colors.background }}
       >
-        <div className={`p-8 sm:p-12 md:p-14 max-w-xl mx-auto shadow-xs rounded-[22px] ${
+        <div className={`p-8 sm:p-12 md:p-14 max-w-xl mx-auto shadow-xs ${
           isAnya
             ? 'bg-white border border-[#E7C8CF]'
-            : 'bg-white border border-[#E7E7DF]'
-        }`}>
+            : 'bg-white border border-[#E7E7DF] rounded-[22px]'
+        }`}
+        style={isAnya ? { clipPath: getAnyaClippedPolygon(20) } : undefined}
+        >
           <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
-            isAnya ? 'bg-[#FFF4F6] text-[#8FA08C]' : 'bg-[#F2F3ED] text-[#626B69]'
+            isAnya ? 'bg-[#FFF4F6] text-[#C97C89]' : 'bg-[#F2F3ED] text-[#626B69]'
           }`}>
             <ShoppingBag className="w-8 h-8 stroke-[1.5]" />
           </div>
@@ -495,32 +500,51 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
               : "There are no items to check out right now. Explore today's freshly ground batters, wholesome millets, and morning essentials."}
           </p>
           <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <button
-              id="checkout-empty-shop-btn"
-              type="button"
-              onClick={() => onNavigate('/shop')}
-              className={`w-full sm:w-auto px-6 py-3 text-white text-sm font-bold rounded-xl transition-colors shadow-xs ${
-                isAnya
-                  ? 'bg-[#2F2326] hover:bg-[#4A3B3E] uppercase tracking-wider text-xs rounded-[12px]'
-                  : isAtelier
-                  ? 'bg-[#181818] hover:bg-black uppercase tracking-wider text-xs'
-                  : 'bg-[#53B847] hover:bg-[#469e3c]'
-              }`}
-            >
-              {isAnya ? 'Browse Artisan Collection' : isAtelier ? 'Browse Collection' : 'Browse Fresh Shop'}
-            </button>
-            <button
-              id="checkout-empty-home-btn"
-              type="button"
-              onClick={() => onNavigate('/')}
-              className={`w-full sm:w-auto px-6 py-3 text-sm font-semibold rounded-xl transition-colors ${
-                isAnya
-                  ? 'bg-[#FFF4F6] hover:bg-[#FDECEF] text-[#2F2326] border border-[#E7C8CF]'
-                  : 'bg-[#F2F3ED] hover:bg-[#E7E7DF] text-[#172126]'
-              }`}
-            >
-              Return Home
-            </button>
+            {isAnya ? (
+              <>
+                <AnyaButton
+                  id="checkout-empty-shop-btn"
+                  variant="primary"
+                  size="md"
+                  onClick={() => onNavigate('/shop')}
+                  className="w-full sm:w-auto"
+                >
+                  Browse Artisan Collection
+                </AnyaButton>
+                <AnyaButton
+                  id="checkout-empty-home-btn"
+                  variant="secondary"
+                  size="md"
+                  onClick={() => onNavigate('/')}
+                  className="w-full sm:w-auto"
+                >
+                  Return Home
+                </AnyaButton>
+              </>
+            ) : (
+              <>
+                <button
+                  id="checkout-empty-shop-btn"
+                  type="button"
+                  onClick={() => onNavigate('/shop')}
+                  className={`w-full sm:w-auto px-6 py-3 text-white text-sm font-bold rounded-xl transition-colors shadow-xs ${
+                    isAtelier
+                      ? 'bg-[#181818] hover:bg-black uppercase tracking-wider text-xs'
+                      : 'bg-[#53B847] hover:bg-[#469e3c]'
+                  }`}
+                >
+                  {isAtelier ? 'Browse Collection' : 'Browse Fresh Shop'}
+                </button>
+                <button
+                  id="checkout-empty-home-btn"
+                  type="button"
+                  onClick={() => onNavigate('/')}
+                  className="w-full sm:w-auto px-6 py-3 text-sm font-semibold rounded-xl transition-colors bg-[#F2F3ED] hover:bg-[#E7E7DF] text-[#172126]"
+                >
+                  Return Home
+                </button>
+              </>
+            )}
           </div>
         </div>
       </main>
@@ -532,7 +556,8 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
   return (
     <main
       id="checkout-page"
-      className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-10 py-5 sm:py-8 md:py-10 pb-28 md:pb-12"
+      className="flex-1 max-w-[1280px] w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-10 py-5 sm:py-8 md:py-10 pb-28 md:pb-12 transition-colors duration-150"
+      style={{ backgroundColor: theme.colors.background }}
     >
       {/* 1. BREADCRUMBS & NAVIGATION */}
       <nav
@@ -544,8 +569,8 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
           id="checkout-breadcrumb-home"
           type="button"
           onClick={() => onNavigate('/')}
-          className={`transition-colors focus:outline-none ${
-            isAnya ? 'hover:text-[#8FA08C]' : isAtelier ? 'hover:text-[#181818]' : 'hover:text-[#004B68]'
+          className={`transition-colors focus:outline-none cursor-pointer ${
+            isAnya ? 'hover:text-[#C97C89]' : isAtelier ? 'hover:text-[#181818]' : 'hover:text-[#004B68]'
           }`}
         >
           Home
@@ -555,8 +580,8 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
           id="checkout-breadcrumb-cart"
           type="button"
           onClick={() => onNavigate('/cart')}
-          className={`transition-colors focus:outline-none ${
-            isAnya ? 'hover:text-[#8FA08C]' : isAtelier ? 'hover:text-[#181818]' : 'hover:text-[#004B68]'
+          className={`transition-colors focus:outline-none cursor-pointer ${
+            isAnya ? 'hover:text-[#C97C89]' : isAtelier ? 'hover:text-[#181818]' : 'hover:text-[#004B68]'
           }`}
         >
           {isAnya ? 'Artisan Bag' : isAtelier ? 'Shopping Bag' : 'Your Basket'}
@@ -589,9 +614,9 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
           id="checkout-back-to-cart-top"
           type="button"
           onClick={() => onNavigate('/cart')}
-          className={`inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold transition-colors py-1 focus:outline-none self-start sm:self-auto ${
+          className={`inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold transition-colors py-1 focus:outline-none self-start sm:self-auto cursor-pointer ${
             isAnya
-              ? 'text-[#2F2326] hover:text-[#8FA08C]'
+              ? 'text-[#2F2326] hover:text-[#C97C89]'
               : isAtelier
               ? 'text-[#181818] hover:text-[#767676]'
               : 'text-[#53B847] hover:text-[#469e3c]'
@@ -654,16 +679,17 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
       {backendBoundaryNotice && (
         <div
           id="checkout-boundary-notice"
-          className={`mb-6 p-4 sm:p-5 rounded-[18px] text-xs sm:text-sm flex items-start gap-3.5 animate-in fade-in duration-200 ${
+          className={`mb-6 p-4 sm:p-5 text-xs sm:text-sm flex items-start gap-3.5 animate-in fade-in duration-200 ${
             isAnya
               ? 'bg-[#FFF4F6] border border-[#E7C8CF] text-[#2F2326]'
               : isAtelier
-              ? 'bg-[#F5F5F3] border border-[#E7E7DF] text-[#141414]'
-              : 'bg-[#004B68]/5 border border-[#004B68]/20 text-[#004B68]'
+              ? 'bg-[#F5F5F3] border border-[#E7E7DF] text-[#141414] rounded-[18px]'
+              : 'bg-[#004B68]/5 border border-[#004B68]/20 text-[#004B68] rounded-[18px]'
           }`}
+          style={isAnya ? { clipPath: getAnyaClippedPolygon(12) } : undefined}
         >
           <Info className={`w-5 h-5 shrink-0 mt-0.5 ${
-            isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#181818]' : 'text-[#004B68]'
+            isAnya ? 'text-[#C97C89]' : isAtelier ? 'text-[#181818]' : 'text-[#004B68]'
           }`} />
           <div className="flex-1">
             <h4 className={`font-bold text-sm ${
@@ -679,7 +705,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                 isAnya ? 'bg-white border border-[#E7C8CF] text-[#2F2326]' : 'bg-white border border-[#E7E7DF] text-[#172126]'
               }`}>
                 <ShieldCheck className={`w-3.5 h-3.5 ${
-                  isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'
+                  isAnya ? 'text-[#C97C89]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'
                 }`} />
                 Cart & pricing validated (₹{grandTotal})
               </span>
@@ -687,7 +713,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                 isAnya ? 'bg-white border border-[#E7C8CF] text-[#2F2326]' : 'bg-white border border-[#E7E7DF] text-[#172126]'
               }`}>
                 <Clock className={`w-3.5 h-3.5 ${
-                  isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#767676]' : 'text-[#004B68]'
+                  isAnya ? 'text-[#C97C89]' : isAtelier ? 'text-[#767676]' : 'text-[#004B68]'
                 }`} />
                 Slot: {selectedSlot?.displayTime}
               </span>
@@ -710,9 +736,10 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
           {/* SECTION A: DELIVERY ADDRESS */}
           <section
             id="checkout-delivery-address-section"
-            className={`rounded-[20px] p-5 sm:p-6 shadow-xs ${
-              isAnya ? 'bg-white border border-[#E7C8CF]' : 'bg-white border border-[#E7E7DF]'
+            className={`p-5 sm:p-6 shadow-xs ${
+              isAnya ? 'bg-white border border-[#E7C8CF]' : 'bg-white border border-[#E7E7DF] rounded-[20px]'
             }`}
+            style={isAnya ? { clipPath: getAnyaClippedPolygon(16) } : undefined}
             aria-labelledby="address-section-heading"
           >
             <div className={`flex items-center justify-between pb-4 border-b ${
@@ -721,7 +748,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
               <div className="flex items-center gap-2.5">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${
                   isAnya
-                    ? 'bg-[#FFF4F6] text-[#8FA08C] border border-[#E7C8CF]'
+                    ? 'bg-[#FFF4F6] text-[#C97C89] border border-[#E7C8CF]'
                     : isAtelier
                     ? 'bg-[#181818] text-white'
                     : 'bg-[#53B847]/10 text-[#53B847]'
@@ -751,9 +778,9 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                 id="checkout-edit-address-btn"
                 type="button"
                 onClick={handleOpenAddressModal}
-                className={`inline-flex items-center gap-1 text-xs font-bold transition-colors px-3 py-1.5 rounded-lg border ${
+                className={`inline-flex items-center gap-1 text-xs font-bold transition-colors px-3 py-1.5 rounded-lg border cursor-pointer ${
                   isAnya
-                    ? 'border-[#E7C8CF] text-[#2F2326] hover:border-[#8FA08C] hover:bg-[#FFF4F6]'
+                    ? 'border-[#E7C8CF] text-[#2F2326] hover:border-[#C97C89] hover:bg-[#FFF4F6]'
                     : isAtelier
                     ? 'border-[#E7E7DF] text-[#141414] hover:bg-[#F2F3ED]'
                     : 'text-[#172126] hover:text-[#53B847] border-[#E7E7DF] hover:bg-[#F2F3ED]'
@@ -795,7 +822,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                   )}
                   {address.deliveryInstructions && (
                     <p className={`text-[11px] font-medium mt-1 ${
-                      isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'
+                      isAnya ? 'text-[#C97C89]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'
                     }`}>
                       Instructions: {address.deliveryInstructions}
                     </p>
@@ -818,7 +845,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                   <button
                     type="button"
                     onClick={handleOpenAddressModal}
-                    className={`px-4 py-2 text-white text-xs font-bold rounded-lg transition-colors shrink-0 self-start sm:self-auto ${
+                    className={`px-4 py-2 text-white text-xs font-bold rounded-lg transition-colors shrink-0 self-start sm:self-auto cursor-pointer ${
                       isAnya
                         ? 'bg-[#2F2326] hover:bg-[#4A3B3E] rounded-[10px]'
                         : isAtelier
@@ -836,9 +863,10 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
           {/* SECTION B: DELIVERY SLOT */}
           <section
             id="checkout-delivery-slot-section"
-            className={`rounded-[20px] p-5 sm:p-6 shadow-xs ${
-              isAnya ? 'bg-white border border-[#E7C8CF]' : 'bg-white border border-[#E7E7DF]'
+            className={`p-5 sm:p-6 shadow-xs ${
+              isAnya ? 'bg-white border border-[#E7C8CF]' : 'bg-white border border-[#E7E7DF] rounded-[20px]'
             }`}
+            style={isAnya ? { clipPath: getAnyaClippedPolygon(16) } : undefined}
             aria-labelledby="slot-section-heading"
           >
             <div className={`flex items-center justify-between pb-4 border-b ${
@@ -847,7 +875,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
               <div className="flex items-center gap-2.5">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${
                   isAnya
-                    ? 'bg-[#FFF4F6] text-[#8FA08C] border border-[#E7C8CF]'
+                    ? 'bg-[#FFF4F6] text-[#C97C89] border border-[#E7C8CF]'
                     : isAtelier
                     ? 'bg-[#181818] text-white'
                     : 'bg-[#53B847]/10 text-[#53B847]'
@@ -875,7 +903,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
 
               <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${
                 isAnya
-                  ? 'text-[#8FA08C] bg-[#FFF4F6] border border-[#E7C8CF]'
+                  ? 'text-[#C97C89] bg-[#FFF4F6] border border-[#E7C8CF]'
                   : isAtelier
                   ? 'text-[#181818] bg-[#181818]/10'
                   : 'text-[#53B847] bg-[#53B847]/10'
@@ -894,12 +922,12 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                     className={`flex items-start justify-between p-3.5 sm:p-4 rounded-xl border transition-all cursor-pointer ${
                       isSelected
                         ? isAnya
-                          ? 'border-[#8FA08C] bg-[#FFF4F6] shadow-xs'
+                          ? 'border-[#C97C89] bg-[#FFF4F6] shadow-xs'
                           : isAtelier
                           ? 'border-[#181818] bg-[#181818]/5 shadow-xs'
                           : 'border-[#53B847] bg-[#53B847]/5 shadow-xs'
                         : isAnya
-                        ? 'border-[#E7C8CF] hover:border-[#8FA08C] bg-white'
+                        ? 'border-[#E7C8CF] hover:border-[#C97C89] bg-white'
                         : 'border-[#E7E7DF] hover:border-[#626B69]/40 bg-white'
                     }`}
                   >
@@ -912,7 +940,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                         onChange={() => setSelectedSlotId(slot.id)}
                         className={`mt-1 h-4 w-4 ${
                           isAnya
-                            ? 'text-[#8FA08C] focus:ring-[#8FA08C] border-[#E7C8CF]'
+                            ? 'text-[#C97C89] focus:ring-[#C97C89] border-[#E7C8CF]'
                             : isAtelier
                             ? 'text-[#181818] focus:ring-[#181818] border-[#E7E7DF]'
                             : 'text-[#53B847] focus:ring-[#53B847] border-[#E7E7DF]'
@@ -939,7 +967,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
 
                     <div className="text-right shrink-0">
                       <span className={`text-[11px] font-semibold flex items-center gap-1 justify-end ${
-                        isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'
+                        isAnya ? 'text-[#C97C89]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'
                       }`}>
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         Available
@@ -951,7 +979,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
             </div>
 
             <p className="text-[11px] text-[#626B69] mt-3 flex items-center gap-1.5">
-              <Info className={`w-3.5 h-3.5 shrink-0 ${isAnya ? 'text-[#8FA08C]' : 'text-[#626B69]'}`} />
+              <Info className={`w-3.5 h-3.5 shrink-0 ${isAnya ? 'text-[#C97C89]' : 'text-[#626B69]'}`} />
               <span>
                 {isAnya
                   ? 'Orders are packaged in eco-friendly plastic-free boxes and dispatched from our Coimbatore botanical studio.'
@@ -965,9 +993,10 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
           {/* SECTION C: PAYMENT METHOD */}
           <section
             id="checkout-payment-method-section"
-            className={`rounded-[20px] p-5 sm:p-6 shadow-xs ${
-              isAnya ? 'bg-white border border-[#E7C8CF]' : 'bg-white border border-[#E7E7DF]'
+            className={`p-5 sm:p-6 shadow-xs ${
+              isAnya ? 'bg-white border border-[#E7C8CF]' : 'bg-white border border-[#E7E7DF] rounded-[20px]'
             }`}
+            style={isAnya ? { clipPath: getAnyaClippedPolygon(16) } : undefined}
             aria-labelledby="payment-section-heading"
           >
             <div className={`flex items-center justify-between pb-4 border-b ${
@@ -976,7 +1005,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
               <div className="flex items-center gap-2.5">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${
                   isAnya
-                    ? 'bg-[#FFF4F6] text-[#8FA08C] border border-[#E7C8CF]'
+                    ? 'bg-[#FFF4F6] text-[#C97C89] border border-[#E7C8CF]'
                     : isAtelier
                     ? 'bg-[#181818] text-white'
                     : 'bg-[#53B847]/10 text-[#53B847]'
@@ -1000,7 +1029,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
 
               <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${
                 isAnya
-                  ? 'text-[#8FA08C] bg-[#FFF4F6] border border-[#E7C8CF]'
+                  ? 'text-[#C97C89] bg-[#FFF4F6] border border-[#E7C8CF]'
                   : isAtelier
                   ? 'text-[#181818] bg-[#181818]/10'
                   : 'text-[#004B68] bg-[#F2F3ED]'
@@ -1019,12 +1048,12 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                     className={`flex items-start justify-between p-3.5 sm:p-4 rounded-xl border transition-all cursor-pointer ${
                       isSelected
                         ? isAnya
-                          ? 'border-[#8FA08C] bg-[#FFF4F6] shadow-xs'
+                          ? 'border-[#C97C89] bg-[#FFF4F6] shadow-xs'
                           : isAtelier
                           ? 'border-[#181818] bg-[#181818]/5 shadow-xs'
                           : 'border-[#004B68] bg-[#004B68]/5 shadow-xs'
                         : isAnya
-                        ? 'border-[#E7C8CF] hover:border-[#8FA08C] bg-white'
+                        ? 'border-[#E7C8CF] hover:border-[#C97C89] bg-white'
                         : 'border-[#E7E7DF] hover:border-[#626B69]/40 bg-white'
                     }`}
                   >
@@ -1037,7 +1066,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                         onChange={() => setSelectedPaymentMethod(method.id)}
                         className={`mt-1 h-4 w-4 ${
                           isAnya
-                            ? 'text-[#8FA08C] focus:ring-[#8FA08C] border-[#E7C8CF]'
+                            ? 'text-[#C97C89] focus:ring-[#C97C89] border-[#E7C8CF]'
                             : isAtelier
                             ? 'text-[#181818] focus:ring-[#181818] border-[#E7E7DF]'
                             : 'text-[#004B68] focus:ring-[#004B68] border-[#E7E7DF]'
@@ -1074,7 +1103,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
             <div className={`mt-4 p-3 rounded-xl border text-[11px] flex items-center gap-2 ${
               isAnya ? 'bg-[#FFF8FA] border-[#E7C8CF] text-[#6F5B60]' : 'bg-[#FAFAF6] border-[#E7E7DF] text-[#626B69]'
             }`}>
-              <Lock className={`w-3.5 h-3.5 shrink-0 ${isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#181818]' : 'text-[#004B68]'}`} />
+              <Lock className={`w-3.5 h-3.5 shrink-0 ${isAnya ? 'text-[#C97C89]' : isAtelier ? 'text-[#181818]' : 'text-[#004B68]'}`} />
               <span>
                 Payment integration is scheduled for the next release phase. No card or UPI details are stored or charged today.
               </span>
@@ -1086,9 +1115,10 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
         <div className="lg:col-span-5 xl:col-span-4 lg:sticky lg:top-24 space-y-4">
           <div
             id="checkout-order-summary-card"
-            className={`rounded-[20px] p-5 sm:p-6 shadow-xs ${
-              isAnya ? 'bg-white border border-[#E7C8CF]' : 'bg-white border border-[#E7E7DF]'
+            className={`p-5 sm:p-6 shadow-xs ${
+              isAnya ? 'bg-white border border-[#E7C8CF]' : 'bg-white border border-[#E7E7DF] rounded-[20px]'
             }`}
+            style={isAnya ? { clipPath: getAnyaClippedPolygon(16) } : undefined}
           >
             <div className={`flex items-center justify-between pb-3.5 border-b ${
               isAnya ? 'border-[#E7C8CF]/70' : 'border-[#E7E7DF]/70'
@@ -1101,8 +1131,8 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
               <button
                 type="button"
                 onClick={() => onNavigate('/cart')}
-                className={`text-xs font-semibold hover:underline ${
-                  isAnya ? 'text-[#8FA08C] hover:text-[#2F2326]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'
+                className={`text-xs font-semibold hover:underline cursor-pointer ${
+                  isAnya ? 'text-[#C97C89] hover:text-[#2F2326]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'
                 }`}
               >
                 {isAnya || isAtelier ? 'Edit bag' : 'Edit basket'} · {totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'}
@@ -1151,7 +1181,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
               <div className="flex items-center justify-between text-[#626B69]">
                 <span>{isAnya ? 'Studio Express Shipping' : isAtelier ? 'Shipping Fee' : 'Delivery Charge'}</span>
                 {deliveryFee === 0 ? (
-                  <span className={`font-bold ${isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'}`}>FREE</span>
+                  <span className={`font-bold ${isAnya ? 'text-[#C97C89]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'}`}>FREE</span>
                 ) : (
                   <span className={`font-medium ${isAnya ? 'text-[#2F2326]' : 'text-[#172126]'}`}>₹{deliveryFee}</span>
                 )}
@@ -1191,22 +1221,36 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
 
             {/* Primary Action Button (Desktop & Inline) */}
             <div className="mt-5">
-              <button
-                id="checkout-place-order-btn"
-                type="button"
-                onClick={handlePlaceOrder}
-                disabled={isSubmitting}
-                className={`w-full py-3.5 px-4 text-white font-bold text-sm sm:text-base transition-all shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${
-                  isAnya
-                    ? 'bg-[#2F2326] hover:bg-[#4A3B3E] rounded-[12px] uppercase tracking-wider text-xs'
-                    : isAtelier
-                    ? 'bg-[#181818] hover:bg-black active:bg-[#2c2c2c] uppercase tracking-wider text-xs rounded-xl'
-                    : 'bg-[#53B847] hover:bg-[#469e3c] active:bg-[#3d8c34] rounded-xl'
-                }`}
-              >
-                <span>{isSubmitting ? (isAnya || isAtelier ? 'Verifying Bag...' : 'Verifying Basket...') : 'Place Order'}</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
+              {isAnya ? (
+                <AnyaButton
+                  id="checkout-place-order-btn"
+                  variant="primary"
+                  size="lg"
+                  fullWidth
+                  onClick={handlePlaceOrder}
+                  disabled={isSubmitting}
+                  icon={<ChevronRight className="w-4 h-4" />}
+                  iconPosition="right"
+                  className="shadow-sm py-4"
+                >
+                  {isSubmitting ? 'Verifying Bag...' : 'Place Order'}
+                </AnyaButton>
+              ) : (
+                <button
+                  id="checkout-place-order-btn"
+                  type="button"
+                  onClick={handlePlaceOrder}
+                  disabled={isSubmitting}
+                  className={`w-full py-3.5 px-4 text-white font-bold text-sm sm:text-base transition-all shadow-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${
+                    isAtelier
+                      ? 'bg-[#181818] hover:bg-black active:bg-[#2c2c2c] uppercase tracking-wider text-xs rounded-xl'
+                      : 'bg-[#53B847] hover:bg-[#469e3c] active:bg-[#3d8c34] rounded-xl'
+                  }`}
+                >
+                  <span>{isSubmitting ? (isAtelier ? 'Verifying Bag...' : 'Verifying Basket...') : 'Place Order'}</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              )}
               <p className="text-[10px] text-center text-[#626B69] mt-2">
                 Order placement boundary will verify checkout payload
               </p>
@@ -1215,11 +1259,11 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
             {/* Trust Badges */}
             <div className="mt-5 pt-4 border-t border-[#E7E7DF]/70 grid grid-cols-2 gap-2 text-[11px] text-[#626B69]">
               <div className="flex items-center gap-1.5">
-                <ShieldCheck className={`w-4 h-4 shrink-0 ${isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'}`} />
+                <ShieldCheck className={`w-4 h-4 shrink-0 ${isAnya ? 'text-[#C97C89]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'}`} />
                 <span>{isAnya ? 'Handmade Cold-Process' : isAtelier ? 'Authentic Natural Fabrics' : '100% Natural Fresh'}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Clock className={`w-4 h-4 shrink-0 ${isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#767676]' : 'text-[#004B68]'}`} />
+                <Clock className={`w-4 h-4 shrink-0 ${isAnya ? 'text-[#C97C89]' : isAtelier ? 'text-[#767676]' : 'text-[#004B68]'}`} />
                 <span>{isAnya ? 'Direct Coimbatore Studio Dispatch' : isAtelier ? 'Insured Express Courier' : 'Early Morning Dispatch'}</span>
               </div>
             </div>
@@ -1242,29 +1286,42 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                 ₹{grandTotal}
               </span>
               {deliveryFee === 0 && (
-                <span className={`text-[10px] font-bold ${isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'}`}>
+                <span className={`text-[10px] font-bold ${isAnya ? 'text-[#C97C89]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'}`}>
                   FREE DEL
                 </span>
               )}
             </div>
           </div>
 
-          <button
-            id="mobile-place-order-btn"
-            type="button"
-            onClick={handlePlaceOrder}
-            disabled={isSubmitting}
-            className={`flex-1 max-w-[200px] py-3 px-4 text-white font-bold text-sm shadow-xs flex items-center justify-center gap-1.5 disabled:opacity-50 ${
-              isAnya
-                ? 'bg-[#2F2326] hover:bg-[#4A3B3E] uppercase tracking-wider text-xs rounded-[12px]'
-                : isAtelier
-                ? 'bg-[#181818] hover:bg-black uppercase tracking-wider text-xs rounded-xl'
-                : 'bg-[#53B847] hover:bg-[#469e3c] rounded-xl'
-            }`}
-          >
-            <span>{isSubmitting ? 'Checking...' : 'Place Order'}</span>
-            <ChevronRight className="w-4 h-4" />
-          </button>
+          {isAnya ? (
+            <AnyaButton
+              id="mobile-place-order-btn"
+              variant="primary"
+              size="md"
+              onClick={handlePlaceOrder}
+              disabled={isSubmitting}
+              icon={<ChevronRight className="w-4 h-4" />}
+              iconPosition="right"
+              className="flex-1 max-w-[200px]"
+            >
+              {isSubmitting ? 'Checking...' : 'Place Order'}
+            </AnyaButton>
+          ) : (
+            <button
+              id="mobile-place-order-btn"
+              type="button"
+              onClick={handlePlaceOrder}
+              disabled={isSubmitting}
+              className={`flex-1 max-w-[200px] py-3 px-4 text-white font-bold text-sm shadow-xs flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer ${
+                isAtelier
+                  ? 'bg-[#181818] hover:bg-black uppercase tracking-wider text-xs rounded-xl'
+                  : 'bg-[#53B847] hover:bg-[#469e3c] rounded-xl'
+              }`}
+            >
+              <span>{isSubmitting ? 'Checking...' : 'Place Order'}</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -1284,15 +1341,18 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
             aria-hidden="true"
           />
 
-          <div className={`relative w-full max-w-lg bg-white rounded-[22px] shadow-2xl border overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col my-auto ${
-            isAnya ? 'border-[#E7C8CF]' : 'border-[#E7E7DF]'
-          }`}>
+          <div
+            className={`relative w-full max-w-lg bg-white shadow-2xl border overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col my-auto ${
+              isAnya ? 'border-[#E7C8CF]' : 'border-[#E7E7DF] rounded-[22px]'
+            }`}
+            style={isAnya ? { clipPath: getAnyaClippedPolygon(16) } : undefined}
+          >
             {/* Modal Header */}
             <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${
               isAnya ? 'border-[#E7C8CF]' : 'border-[#E7E7DF]'
             }`}>
               <div className="flex items-center gap-2">
-                <MapPin className={`w-5 h-5 ${isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#181818]' : 'text-[#004B68]'}`} />
+                <MapPin className={`w-5 h-5 ${isAnya ? 'text-[#C97C89]' : isAtelier ? 'text-[#181818]' : 'text-[#004B68]'}`} />
                 <h3 id="address-modal-title" className={`text-lg font-bold ${
                   isAnya ? 'text-[#2F2326] font-serif' : isAtelier ? 'text-[#141414] font-serif' : 'text-[#004B68]'
                 }`}>
@@ -1302,7 +1362,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
               <button
                 type="button"
                 onClick={() => setIsAddressModalOpen(false)}
-                className={`p-1.5 rounded-lg transition-colors ${
+                className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                   isAnya ? 'text-[#6F5B60] hover:text-[#2F2326] hover:bg-[#FFF4F6]' : 'text-[#626B69] hover:text-[#172126] hover:bg-[#F2F3ED]'
                 }`}
                 aria-label="Close address modal"
@@ -1332,7 +1392,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                     placeholder="e.g. Ramesh Kumar"
                     className={`w-full px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm text-[#172126] bg-[#FAFAF6] focus:bg-white focus:outline-none focus:ring-2 ${
                       isAnya
-                        ? 'focus:ring-[#8FA08C]'
+                        ? 'focus:ring-[#C97C89]'
                         : isAtelier
                         ? 'focus:ring-[#181818]'
                         : 'focus:ring-[#53B847]'
@@ -1373,7 +1433,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                       placeholder="98432 12345"
                       className={`w-full pl-11 pr-3.5 py-2.5 rounded-xl border text-xs sm:text-sm text-[#172126] bg-[#FAFAF6] focus:bg-white focus:outline-none focus:ring-2 ${
                         isAnya
-                          ? 'focus:ring-[#8FA08C]'
+                          ? 'focus:ring-[#C97C89]'
                           : isAtelier
                           ? 'focus:ring-[#181818]'
                           : 'focus:ring-[#53B847]'
@@ -1408,7 +1468,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                   placeholder="e.g. Flat 3B, Sri Krishna Apartments"
                   className={`w-full px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm text-[#172126] bg-[#FAFAF6] focus:bg-white focus:outline-none focus:ring-2 ${
                     isAnya
-                      ? 'focus:ring-[#8FA08C]'
+                      ? 'focus:ring-[#C97C89]'
                       : isAtelier
                       ? 'focus:ring-[#181818]'
                       : 'focus:ring-[#53B847]'
@@ -1441,7 +1501,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                   placeholder="e.g. 4th Cross, Gandhi Park Main Road"
                   className={`w-full px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm text-[#172126] bg-[#FAFAF6] focus:bg-white focus:outline-none focus:ring-2 ${
                     isAnya
-                      ? 'focus:ring-[#8FA08C]'
+                      ? 'focus:ring-[#C97C89]'
                       : isAtelier
                       ? 'focus:ring-[#181818]'
                       : 'focus:ring-[#53B847]'
@@ -1480,7 +1540,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                     }}
                     className={`w-full px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm text-[#172126] bg-[#FAFAF6] focus:bg-white focus:outline-none focus:ring-2 ${
                       isAnya
-                        ? 'border-[#E7C8CF] focus:ring-[#8FA08C]'
+                        ? 'border-[#E7C8CF] focus:ring-[#C97C89]'
                         : 'border-[#E7E7DF] focus:ring-[#53B847]'
                     }`}
                   >
@@ -1513,7 +1573,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                     placeholder="641007"
                     className={`w-full px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm text-[#172126] bg-[#FAFAF6] focus:bg-white focus:outline-none focus:ring-2 ${
                       isAnya
-                        ? 'focus:ring-[#8FA08C]'
+                        ? 'focus:ring-[#C97C89]'
                         : isAtelier
                         ? 'focus:ring-[#181818]'
                         : 'focus:ring-[#53B847]'
@@ -1548,7 +1608,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                     placeholder="e.g. Opposite Pillayar Temple"
                     className={`w-full px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm text-[#172126] bg-[#FAFAF6] focus:bg-white focus:outline-none focus:ring-2 ${
                       isAnya
-                        ? 'border-[#E7C8CF] focus:ring-[#8FA08C]'
+                        ? 'border-[#E7C8CF] focus:ring-[#C97C89]'
                         : 'border-[#E7E7DF] focus:ring-[#53B847]'
                     }`}
                   />
@@ -1574,7 +1634,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({
                     placeholder="e.g. Leave with security"
                     className={`w-full px-3.5 py-2.5 rounded-xl border text-xs sm:text-sm text-[#172126] bg-[#FAFAF6] focus:bg-white focus:outline-none focus:ring-2 ${
                       isAnya
-                        ? 'border-[#E7C8CF] focus:ring-[#8FA08C]'
+                        ? 'border-[#E7C8CF] focus:ring-[#C97C89]'
                         : 'border-[#E7E7DF] focus:ring-[#53B847]'
                     }`}
                   />

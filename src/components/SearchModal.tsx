@@ -79,7 +79,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
           isAnya ? 'border-[#E7C8CF] bg-[#FFF4F6]/30' : 'border-[#E7E7DF]'
         }`}>
           <Search className={`w-5 h-5 shrink-0 ${
-            isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'
+            isAnya ? 'text-[#C97C89]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'
           }`} />
           <input
             type="text"
@@ -134,7 +134,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
                   onClick={() => setQuery(tag)}
                   className={`px-3 py-1.5 text-xs font-medium shrink-0 transition-colors whitespace-nowrap shadow-xs active:scale-95 ${
                     isAnya
-                      ? 'bg-white hover:bg-[#FFF4F6] text-[#2F2326] rounded-[8px] border border-[#E7C8CF] hover:border-[#8FA08C]'
+                      ? 'bg-white hover:bg-[#FFF4F6] text-[#2F2326] rounded-[8px] border border-[#E7C8CF] hover:border-[#C97C89]'
                       : 'bg-white hover:bg-[#F2F3ED] text-[#172126] rounded-lg border border-[#E7E7DF]'
                   }`}
                 >
@@ -154,7 +154,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
         >
           <div className="flex items-center justify-between mb-3 sm:mb-4">
             <span className={`text-xs font-semibold uppercase tracking-wider ${
-              isAnya ? 'text-[#8FA08C]' : 'text-[#626B69]'
+              isAnya ? 'text-[#C97C89]' : 'text-[#626B69]'
             }`}>
               {query ? `Found ${filteredProducts.length} items` : (isAnya ? 'Artisan Recommendations' : isAtelier ? 'Curated Selection' : 'Fresh Recommendations')}
             </span>

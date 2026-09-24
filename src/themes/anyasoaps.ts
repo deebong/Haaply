@@ -7,7 +7,7 @@ import { StoreTheme } from './themeTypes';
  * Distinctive Visual Identity (derived from anyasoaps_index.html):
  * - Soft natural/premium skincare aesthetic
  * - Warm ivory, cream, and pale blush surfaces (#FFF4F6, #FDECEF)
- * - Muted botanical sage green accents (#8FA08C, #6F7F6D)
+ * - Artisan dusty rose & plum accents (#C97C89, #B56875)
  * - Dark charcoal/brown typography (#2F2326, #8E7A7E)
  * - Refined display typography pairing ('Urbanist' + italic 'Playfair Display')
  * - Spacious editorial layouts with soft borders and clipped-polygon badges
@@ -38,22 +38,22 @@ export const anyasoapsTheme: StoreTheme = {
     primaryHover: '#4A3B3E',
     secondary: '#E39AA6',
     secondaryHover: '#C97C89',
-    accent: '#8FA08C',
-    accentHover: '#6F7F6D',
+    accent: '#C97C89',
+    accentHover: '#B56875',
     background: '#FFF4F6',
     surface: '#FFFFFF',
-    surfaceAlt: '#FDECEF',
+    surfaceAlt: '#FFF8FA',
     text: '#2F2326',
     textMuted: '#8E7A7E',
     border: '#E7C8CF',
     borderStrong: '#D8B4BC',
-    success: '#8FA08C',
+    success: '#C97C89',
     warning: '#E09A55',
     danger: '#C95252',
   },
   typography: {
-    headingFont: "'Urbanist', 'Playfair Display', sans-serif",
-    bodyFont: "'Urbanist', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    headingFont: "'Urbanist', 'Playfair Display', 'Noto Sans', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
+    bodyFont: "'Urbanist', 'Noto Sans', 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
     headingWeight: '600',
     bodyWeight: '400',
     fontScaleRatio: 1.25,

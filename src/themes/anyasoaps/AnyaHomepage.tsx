@@ -10,6 +10,7 @@ import { AnyaTestimonialsSection } from './AnyaTestimonialsSection';
 import { AnyaSkinQuizSection } from './AnyaSkinQuizSection';
 import { AnyaFaqSection } from './AnyaFaqSection';
 import { AnyaButton } from './AnyaButton';
+import { getAnyaClippedPolygon } from './AnyaCard';
 
 interface AnyaHomepageProps {
   products: Product[];
@@ -48,7 +49,7 @@ export const AnyaHomepage: React.FC<AnyaHomepageProps> = ({
       <section id="collection" className="py-16 sm:py-24 max-w-[1360px] mx-auto px-4 sm:px-6 md:px-8 lg:px-10 w-full">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 sm:mb-12">
           <div>
-            <span className="text-[11px] font-bold tracking-widest uppercase text-[#8FA08C] block mb-2">
+            <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-[#C97C89] block mb-2">
               SIGNATURE COLD-PROCESS RANGE
             </span>
             <h2
@@ -56,7 +57,12 @@ export const AnyaHomepage: React.FC<AnyaHomepageProps> = ({
               style={{ fontFamily: "'Urbanist', 'Playfair Display', Georgia, serif" }}
             >
               Handcrafted Artisan{' '}
-              <span className="italic font-normal text-[#8FA08C]">Botanical Soaps</span>
+              <span
+                className="italic font-normal text-[#C97C89] font-serif"
+                style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+              >
+                Botanical Soaps
+              </span>
             </h2>
             <p className="text-sm text-[#6F5B60] mt-2 max-w-xl">
               Cured naturally for 28 days to create a long-lasting, velvety lather infused with pure essential oils and organic plant butters.
@@ -64,15 +70,16 @@ export const AnyaHomepage: React.FC<AnyaHomepageProps> = ({
           </div>
 
           {/* Category Filter Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+          <div className="flex items-center gap-2.5 overflow-x-auto pb-2 scrollbar-none">
             <button
               type="button"
               onClick={() => setSelectedCategory('all')}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+              className={`px-4 py-2 text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                 selectedCategory === 'all'
                   ? 'bg-[#2F2326] text-white shadow-xs'
-                  : 'bg-white text-[#2F2326] border border-[#E7C8CF] hover:border-[#8FA08C]'
+                  : 'bg-white text-[#2F2326] border border-[#E7C8CF] hover:border-[#C97C89]'
               }`}
+              style={{ clipPath: getAnyaClippedPolygon(6) }}
             >
               All Artisan Soaps ({products.length})
             </button>
@@ -81,11 +88,12 @@ export const AnyaHomepage: React.FC<AnyaHomepageProps> = ({
                 key={c.slug}
                 type="button"
                 onClick={() => setSelectedCategory(c.slug)}
-                className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                className={`px-4 py-2 text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                   selectedCategory === c.slug
                     ? 'bg-[#2F2326] text-white shadow-xs'
-                    : 'bg-white text-[#2F2326] border border-[#E7C8CF] hover:border-[#8FA08C]'
+                    : 'bg-white text-[#2F2326] border border-[#E7C8CF] hover:border-[#C97C89]'
                 }`}
+                style={{ clipPath: getAnyaClippedPolygon(6) }}
               >
                 {c.name}
               </button>
@@ -118,7 +126,7 @@ export const AnyaHomepage: React.FC<AnyaHomepageProps> = ({
           <AnyaButton
             variant="outline"
             size="md"
-            icon={<ArrowRight className="w-4 h-4 text-[#8FA08C]" />}
+            icon={<ArrowRight className="w-4 h-4 text-[#C97C89]" />}
             iconPosition="right"
             onClick={() => onNavigate('/shop')}
           >

@@ -36,7 +36,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     : 'text-[#004B68] font-semibold';
 
   const badgeColor = isAnya
-    ? 'bg-[#8FA08C]'
+    ? 'bg-[#C97C89]'
     : isAtelier
     ? 'bg-[#181818]'
     : 'bg-[#53B847]';
@@ -131,7 +131,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
           type="button"
           onClick={onOpenCart}
           className={`flex-1 flex flex-col items-center justify-center py-1 min-h-[48px] rounded-lg transition-colors duration-150 focus:outline-none relative ${
-            isAnya ? 'text-[#2F2326] hover:text-[#8FA08C]' : isAtelier ? 'text-[#181818] hover:text-[#767676]' : 'text-[#004B68] hover:text-[#53B847]'
+            isAnya ? 'text-[#2F2326] hover:text-[#C97C89]' : isAtelier ? 'text-[#181818] hover:text-[#767676]' : 'text-[#004B68] hover:text-[#53B847]'
           }`}
           aria-label={`Cart with ${cartCount} items`}
         >

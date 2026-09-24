@@ -1,5 +1,33 @@
 @import "tailwindcss";
 
+/* 
+ * Indian Rupee (₹ / U+20B9) Typography Fallback
+ * Urbanist and Playfair Display natively lack the U+20B9 glyph in some subsets.
+ * These @font-face rules intercept U+20B9 inside 'Urbanist' and 'Playfair Display'
+ * and route it to 'Noto Sans' (loaded globally via index.html) and local system fonts.
+ */
+@font-face {
+  font-family: 'Urbanist';
+  font-style: normal;
+  font-weight: 100 900;
+  src: local('Noto Sans'),
+       local('Arial'),
+       local('Segoe UI'),
+       local('Helvetica Neue');
+  unicode-range: U+20B9;
+}
+
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 100 900;
+  src: local('Noto Sans'),
+       local('Arial'),
+       local('Segoe UI'),
+       local('Helvetica Neue');
+  unicode-range: U+20B9;
+}
+
 @layer base {
   :root {
     /* Centralized Theme Tokens (Defaults match Haaply Fresh) */

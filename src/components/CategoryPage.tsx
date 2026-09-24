@@ -128,7 +128,7 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
             <div className="flex items-center gap-2 mb-2">
               <span
                 className={`text-[10px] sm:text-[11px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-md ${
-                  isAnya ? 'bg-[#FFF4F6] text-[#8FA08C]' : isAtelier ? 'bg-[#F4F1EA] text-[#8C7355]' : 'bg-[#F2F3ED] text-[#53B847]'
+                  isAnya ? 'bg-[#FFF4F6] text-[#C97C89]' : isAtelier ? 'bg-[#F4F1EA] text-[#8C7355]' : 'bg-[#F2F3ED] text-[#53B847]'
                 }`}
               >
                 {isAnya ? 'Botanical Collection' : isAtelier ? 'Edition' : 'Category'}
@@ -200,7 +200,7 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
                   onClick={() => onNavigate(`/category/${c.slug}`)}
                   className={`shrink-0 text-xs px-3 py-1.5 rounded-lg border font-medium transition-colors ${
                     isAnya
-                      ? 'border-[#E7C8CF] bg-white hover:border-[#8FA08C] text-[#6F5B60] hover:text-[#2F2326]'
+                      ? 'border-[#E7C8CF] bg-white hover:border-[#C97C89] text-[#6F5B60] hover:text-[#2F2326]'
                       : isAtelier
                       ? 'border-[#E7E7DF] bg-white hover:border-[#141414] text-[#181818]'
                       : 'border-[#E7E7DF] bg-white hover:border-[#37B4A1] text-[#626B69] hover:text-[#004B68]'
@@ -235,7 +235,7 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
           >
             <span
               className={`w-1.5 h-1.5 rounded-full ${
-                freshOnly ? 'bg-white' : isAnya ? 'bg-[#8FA08C]' : isAtelier ? 'bg-[#8C7355]' : 'bg-[#53B847]'
+                freshOnly ? 'bg-white' : isAnya ? 'bg-[#C97C89]' : isAtelier ? 'bg-[#8C7355]' : 'bg-[#53B847]'
               }`}
             />
             <span>{isAnya ? 'Signature Soaps Only' : isAtelier ? 'New Season Only' : 'Fresh Today Only'}</span>
@@ -252,13 +252,13 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          <ArrowUpDown className={`w-3.5 h-3.5 ${isAnya ? 'text-[#8FA08C]' : 'text-[#626B69]'}`} />
+          <ArrowUpDown className={`w-3.5 h-3.5 ${isAnya ? 'text-[#C97C89]' : 'text-[#626B69]'}`} />
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
             className={`text-[#172126] font-medium py-1.5 px-2.5 rounded-lg border-none focus:outline-none cursor-pointer text-xs ${
               isAnya
-                ? 'bg-[#FFF4F6] text-[#2F2326] focus:ring-1 focus:ring-[#8FA08C]'
+                ? 'bg-[#FFF4F6] text-[#2F2326] focus:ring-1 focus:ring-[#C97C89]'
                 : isAtelier
                 ? 'bg-[#F2F3ED] focus:ring-1 focus:ring-[#141414]'
                 : 'bg-[#F2F3ED] focus:ring-1 focus:ring-[#53B847]'
@@ -279,7 +279,7 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({
             type="button"
             onClick={() => setFreshOnly(false)}
             className={`mt-3 text-xs font-semibold hover:underline ${
-              isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'
+              isAnya ? 'text-[#C97C89]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'
             }`}
           >
             Show all {category.name}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Sparkles, Droplets, SunMedium, Clock } from 'lucide-react';
+import { AnyaCard } from './AnyaCard';
 
 export const AnyaProcessSection: React.FC = () => {
   const steps = [
@@ -38,19 +39,24 @@ export const AnyaProcessSection: React.FC = () => {
   ];
 
   return (
-    <section className="py-16 sm:py-24 bg-[#FFF4F6] border-b border-[#E7C8CF]/60 relative overflow-hidden">
+    <section className="py-16 sm:py-24 bg-[#FFF4F6] border-b border-[#E7C8CF] relative overflow-hidden">
       <div className="max-w-[1360px] mx-auto px-4 sm:px-6 md:px-8 lg:px-10 relative z-10">
         {/* Section Heading */}
         <div className="text-center max-w-2xl mx-auto mb-14 sm:mb-20">
-          <span className="text-[11px] font-bold tracking-widest uppercase text-[#8FA08C] block mb-2">
-            TIME-TESTED APOTHECARY CRAFT
+          <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-[#C97C89] block mb-2">
+            Time-Tested Apothecary Craft
           </span>
           <h2
             className="text-3xl sm:text-4xl md:text-5xl font-semibold text-[#2F2326] tracking-tight leading-tight"
             style={{ fontFamily: "'Urbanist', 'Playfair Display', Georgia, serif" }}
           >
             How Anya Soaps{' '}
-            <span className="italic font-normal text-[#8FA08C]">Are Made</span>
+            <span
+              className="italic font-normal text-[#C97C89] font-serif"
+              style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+            >
+              Are Made
+            </span>
           </h2>
           <p className="text-sm sm:text-base text-[#6F5B60] mt-3 leading-relaxed">
             We reject the industrial shortcut of melted pellets and synthetic extrusions.
@@ -58,35 +64,40 @@ export const AnyaProcessSection: React.FC = () => {
           </p>
         </div>
 
-        {/* Process Steps Grid */}
+        {/* Process Steps Grid with Clipped-Corner Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative">
           {steps.map((step, idx) => {
             const Icon = step.icon;
             return (
-              <div
+              <AnyaCard
                 key={idx}
-                className="bg-white p-7 rounded-2xl border border-[#E7C8CF] shadow-xs relative flex flex-col justify-between"
+                variant="surface"
+                cutSize="md"
+                hoverEffect
+                className="shadow-[0_8px_20px_rgba(47,35,38,0.03)] flex flex-col justify-between"
               >
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-xs font-bold tracking-widest text-[#E39AA6]">
-                      {step.num}
-                    </span>
-                    <div className="w-9 h-9 rounded-lg bg-[#FDECEF] flex items-center justify-center text-[#8FA08C]">
-                      <Icon className="w-4 h-4" />
+                <div className="p-6 sm:p-7 flex flex-col justify-between h-full">
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="text-xs font-bold tracking-widest text-[#E39AA6]">
+                        {step.num}
+                      </span>
+                      <div className="w-9 h-9 rounded-lg bg-[#FFF4F6] border border-[#E7C8CF] flex items-center justify-center text-[#C97C89]">
+                        <Icon className="w-4 h-4 stroke-[1.5]" />
+                      </div>
                     </div>
+                    <h3 className="text-lg font-semibold text-[#2F2326] leading-snug">
+                      {step.title}
+                    </h3>
+                    <span className="text-[11px] font-semibold text-[#C97C89] uppercase tracking-wider block mt-1 mb-2.5">
+                      {step.subtitle}
+                    </span>
+                    <p className="text-xs sm:text-sm text-[#6F5B60] leading-relaxed">
+                      {step.description}
+                    </p>
                   </div>
-                  <h3 className="text-lg font-semibold text-[#2F2326]">
-                    {step.title}
-                  </h3>
-                  <span className="text-[11px] font-medium text-[#8FA08C] uppercase tracking-wider block mt-0.5 mb-2.5">
-                    {step.subtitle}
-                  </span>
-                  <p className="text-xs sm:text-sm text-[#6F5B60] leading-relaxed">
-                    {step.description}
-                  </p>
                 </div>
-              </div>
+              </AnyaCard>
             );
           })}
         </div>

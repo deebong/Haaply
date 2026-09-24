@@ -59,7 +59,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         }`}>
           <div className="flex items-center gap-2">
             <User className={`w-5 h-5 ${
-              isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#181818]' : 'text-[#004B68]'
+              isAnya ? 'text-[#C97C89]' : isAtelier ? 'text-[#181818]' : 'text-[#004B68]'
             }`} />
             <h3 id="account-modal-title" className={`text-lg font-bold ${
               isAnya ? 'text-[#2F2326] font-serif' : isAtelier ? 'text-[#141414] font-serif' : 'text-[#004B68]'
@@ -72,7 +72,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className={`p-1.5 rounded-lg transition-colors ${
+            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
               isAnya
                 ? 'text-[#6F5B60] hover:text-[#2F2326] hover:bg-[#FDECEF]'
                 : 'text-[#626B69] hover:text-[#172126] hover:bg-[#F2F3ED]'
@@ -94,7 +94,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
               }`}>
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${
                   isAnya
-                    ? 'bg-[#FFF4F6] text-[#8FA08C] border border-[#E7C8CF]'
+                    ? 'bg-[#FFF4F6] text-[#C97C89] border border-[#E7C8CF]'
                     : isAtelier
                     ? 'bg-[#181818] text-white'
                     : 'bg-[#53B847]/15 text-[#53B847]'
@@ -107,7 +107,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                   </h4>
                   <p className={`text-xs ${isAnya ? 'text-[#6F5B60]' : 'text-[#626B69]'}`}>+91 {userPhone || (isAnya ? '9840123456' : '9843210980')}</p>
                   <span className={`inline-flex items-center gap-1 text-[10px] font-semibold mt-0.5 ${
-                    isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'
+                    isAnya ? 'text-[#C97C89]' : isAtelier ? 'text-[#181818]' : 'text-[#53B847]'
                   }`}>
                     <ShieldCheck className="w-3 h-3" />
                     {isAnya ? 'Artisan Member' : isAtelier ? 'Verified Client' : 'Verified Customer'}
@@ -121,7 +121,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                 <div className={`flex items-center justify-between ${isAnya ? 'text-[#6F5B60]' : 'text-[#626B69]'}`}>
                   <span className="flex items-center gap-1.5">
                     <Package className={`w-3.5 h-3.5 ${
-                      isAnya ? 'text-[#8FA08C]' : isAtelier ? 'text-[#181818]' : 'text-[#004B68]'
+                      isAnya ? 'text-[#C97C89]' : isAtelier ? 'text-[#181818]' : 'text-[#004B68]'
                     }`} />
                     Total past orders
                   </span>
@@ -182,7 +182,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                     maxLength={10}
                     className={`w-full pl-12 pr-4 py-2 text-sm bg-white border rounded-xl focus:outline-none ${
                       isAnya
-                        ? 'border-[#E7C8CF] focus:border-[#8FA08C] text-[#2F2326]'
+                        ? 'border-[#E7C8CF] focus:border-[#C97C89] text-[#2F2326]'
                         : isAtelier
                         ? 'border-[#E7E7DF] focus:border-[#181818]'
                         : 'border-[#E7E7DF] focus:border-[#53B847]'
@@ -204,7 +204,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                   maxLength={4}
                   className={`w-full px-4 py-2 text-sm bg-white border rounded-xl focus:outline-none tracking-widest ${
                     isAnya
-                      ? 'border-[#E7C8CF] focus:border-[#8FA08C] text-[#2F2326]'
+                      ? 'border-[#E7C8CF] focus:border-[#C97C89] text-[#2F2326]'
                       : isAtelier
                       ? 'border-[#E7E7DF] focus:border-[#181818]'
                       : 'border-[#E7E7DF] focus:border-[#53B847]'
